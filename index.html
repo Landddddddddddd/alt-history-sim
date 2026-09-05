@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>架空历史推演模拟器 · Alternate History Simulator</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --panel:#ffffff; --ink:#1f2933; --muted:#667085;
+    --line:#e3e8ef; --brand:#2f6df0; --brand2:#13b07a; --warn:#e8893b;
+    --politics:#2f6df0; --economy:#13b07a; --military:#e5484d; --tech:#7c5cff;
+    --culture:#e8893b; --diplomacy:#0ea5c4; --society:#c2417a;
+    --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,"Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55}
+  header{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  header h1{font-size:17px;margin:0;font-weight:700}
+  header .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .langsel{display:flex;gap:6px;align-items:center}
+  .langsel select{padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:16px;align-items:start}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+  .card h2{font-size:14px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .card h2 .n{background:var(--brand);color:#fff;border-radius:6px;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input,textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:13px;font-family:inherit}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:8px}
+  .row>*{flex:1}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}
+  .btn:hover{border-color:var(--brand);color:var(--brand)}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.primary:hover{filter:brightness(1.05);color:#fff}
+  .btn.good{background:var(--brand2);color:#fff;border-color:var(--brand2)}
+  .btn.ghost{background:transparent}
+  .btn.sm{padding:5px 9px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tab{padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:13px}
+  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .view{display:none}
+  .view.active{display:block}
+  .progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+  .progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));width:0%}
+  .muted{color:var(--muted);font-size:12px}
+  .node{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:#fbfcfe}
+  .node .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .node .yr{font-weight:700;color:var(--brand)}
+  .turn{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;background:#fff}
+  .turn .yr{font-size:15px;font-weight:800;color:var(--brand)}
+  .turn .sum{margin:6px 0 10px;color:#344054}
+  .ev{display:flex;gap:10px;padding:7px 0;border-top:1px dashed var(--line)}
+  .ev .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none}
+  .ev .dom{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .ev .ttl{font-weight:700}
+  .ev .loc{color:var(--muted);font-size:12px}
+  .ev .sev{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+  .divergences{margin-top:8px;padding:8px 10px;background:#fff5ec;border:1px solid #f3d3b5;border-radius:8px;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;position:sticky;top:0;background:#fff}
+  .metric{display:inline-block;min-width:34px;text-align:center;padding:2px 4px;border-radius:6px;font-weight:700}
+  .bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:3px}
+  .bar>i{display:block;height:100%}
+  .log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:#0f172a;color:#cbd5e1;padding:12px;border-radius:10px;max-height:420px;overflow:auto;white-space:pre-wrap}
+  .log .ok{color:#4ade80}.log .err{color:#f87171}.log .info{color:#93c5fd}
+  .note{font-size:12px;color:var(--muted);background:#f0f5ff;border:1px solid #d6e4ff;border-radius:8px;padding:9px 11px;margin-top:10px}
+  .tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:700;color:#fff}
+  .empty{color:var(--muted);text-align:center;padding:40px 0}
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:12px;background:#eef2ff;color:var(--brand);font-weight:600}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1f2933;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:50}
+  .toast.show{opacity:1}
+  .checkrow{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+  .checkrow label{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:13px;font-weight:600}
+  .checkrow input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="appTitle">架空历史推演模拟器</h1>
+    <div class="sub" id="appSub">自带 Key · 多语言 · 多历史节点 · 地图/趋势/分支对比</div>
+  </div>
+  <div class="langsel">
+    <span class="muted" id="langLabel">语言</span>
+    <select id="lang">
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+      <option value="ja">日本語</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+    </select>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ============ 左：配置面板 ============ -->
+  <div>
+    <!-- 1. API -->
+    <div class="card">
+      <h2><span class="n">1</span><span id="tApi">接入模型（自己接 Key）</span></h2>
+      <label id="lApiBase">API 地址（OpenAI 兼容）</label>
+      <input id="apiBase" placeholder="https://api.openai.com/v1" />
+      <label id="lApiKey">API Key（仅存你本地浏览器）</label>
+      <input id="apiKey" type="password" placeholder="sk-... 或留空（本地 Ollama）" />
+      <div class="row">
+        <div><label id="lApiModel">模型名</label><input id="apiModel" placeholder="gpt-4o-mini" /></div>
+        <div><label id="lApiTemp">温度</label><input id="apiTemp" type="number" step="0.05" min="0" max="2" value="0.8" /></div>
+      </div>
+      <div class="row">
+        <div><label id="lApiMax">最大输出 token</label><input id="apiMax" type="number" step="256" min="256" value="4096" /></div>
+        <div><label id="lJson">JSON 模式</label>
+          <select id="jsonMode"><option value="1" id="lJson1">开启（推荐）</option><option value="0" id="lJson0">关闭</option></select>
+        </div>
+      </div>
+      <div class="scn-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn sm" id="btnTest" onclick="testConn()">测试连接</button>
+        <button class="btn sm ghost" id="btnFillLocal" onclick="fillLocal()">填入本地 Ollama</button>
+      </div>
+      <div class="checkrow">
+        <label><input type="checkbox" id="optRand" /> <span id="lRand">随机事件表</span></label>
+        <label><input type="checkbox" id="optAdj" /> <span id="lAdj">地缘相邻 + 地图</span></label>
+      </div>
+      <div class="note" id="noteKey"></div>
+    </div>
+
+    <!-- 2. 方案 -->
+    <div class="card" style="margin-top:16px">
+      <h2><span class="n">2</span><span id="tScn">推演方案</span></h2>
+      <label id="lScnTitle">方案标题</label>
+      <input id="scnTitle" placeholder="例如：如果罗马统一了地中海" />
+      <div class="row">
+        <div><label id="lStart">起始年份</label><input id="startYear" type="number" value="100" /></div>
+        <div><label id="lEnd">结束年份</label><input id="endYear" type="number" value="1500" /></div>
+        <div><label id="lStep">每步年数</label><input id="stepYears" type="number" value="50" min="1" /></div>
+      </div>
+      <label id="lBase">初始世界设定 / 分歧前提（Point of Divergence）</label>
+      <textarea id="baseContext" placeholder="描述推演起点的真实或架空世界……"></textarea>
+      <div class="muted" id="lBaseHint"></div>
+    </div>
+
+    <!-- 3. 历史节点 -->
+    <div class="card" style="margin-top:16px">
+      <h2><span class="n">3</span><span id="tNodes">历史节点（分歧点）</span></h2>
+      <div id="nodeList"></div>
+      <div class="node">
+        <div class="row">
+          <div style="max-width:90px"><label id="lNodeYear">年份</label><input id="nYear" type="number" placeholder="800" /></div>
+          <div><label id="lNodeName">名称</label><input id="nName" placeholder="火药西传" /></div>
+        </div>
+        <label id="lNodeDesc">该节点触发的事件描述</label>
+        <textarea id="nDesc" placeholder="当推演到达此年份时，模型必须触发并推演其连锁反应"></textarea>
+        <div style="margin-top:8px"><button class="btn sm primary" id="btnAddNode" onclick="addNode()">+ 添加节点</button></div>
+      </div>
+      <div class="note" id="noteNodes"></div>
+    </div>
+
+    <!-- 4. 操作 -->
+    <div class="card" style="margin-top:16px">
+      <h2><span class="n">4</span><span id="tRun">推演控制</span></h2>
+      <div class="progress"><i id="progBar"></i></div>
+      <div class="muted" id="progText">尚未开始</div>
+      <div class="scn-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn primary" id="btnStart" onclick="startSim()">▶ 开始推演</button>
+        <button class="btn" id="btnPause" onclick="pauseSim()" disabled>⏸ 暂停</button>
+        <button class="btn" id="btnReset" onclick="resetSim()">↺ 重置</button>
+      </div>
+      <div class="scn-row" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn sm" id="btnSave" onclick="saveScenario()">保存方案</button>
+        <button class="btn sm" id="btnExport" onclick="exportJson()">导出 JSON</button>
+        <button class="btn sm" id="btnImport" onclick="importJson()">导入 JSON</button>
+        <button class="btn sm" id="btnPreset" onclick="loadPreset()">载入示例</button>
+      </div>
+      <div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+        <div class="muted" id="branchHint"></div>
+        <div class="row" style="margin-top:6px">
+          <div style="max-width:130px"><label id="lBranchN">分支数 (2-4)</label><input id="branchN" type="number" min="2" max="4" value="3" /></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn" id="btnBranch" onclick="runBranches()">⧉ 运行分支对比</button></div>
+        </div>
+        <div class="progress" style="margin-top:8px"><i id="branchBar"></i></div>
+        <div class="muted" id="branchText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 右：输出 ============ -->
+  <div>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" data-view="timeline" id="tabTimeline">时间线</div>
+        <div class="tab" data-view="factions" id="tabFactions">势力</div>
+        <div class="tab" data-view="map" id="tabMap">地图</div>
+        <div class="tab" data-view="trend" id="tabTrend">趋势</div>
+        <div class="tab" data-view="branch" id="tabBranch">分支对比</div>
+        <div class="tab" data-view="raw" id="tabRaw">原始 JSON</div>
+        <div class="tab" data-view="log" id="tabLog">运行日志</div>
+      </div>
+
+      <div class="view active" id="view-timeline"><div id="timeline"><div class="empty" id="tlEmpty">配置好模型与方案后，点击「开始推演」。</div></div></div>
+      <div class="view" id="view-factions"><div id="factions"><div class="empty">推演开始后显示势力数值。</div></div></div>
+      <div class="view" id="view-map"><div id="mapView"><div class="empty">推演开始后显示势力地图。</div></div></div>
+      <div class="view" id="view-trend">
+        <div class="row" style="max-width:240px;margin-bottom:8px">
+          <div><label id="trendMetric">指标</label>
+            <select id="trendSel" onchange="renderTrend(this.value)">
+              <option value="tech" id="oTech">科技</option>
+              <option value="stability" id="oStab">稳定</option>
+              <option value="military" id="oMil">军力</option>
+            </select>
+          </div>
+        </div>
+        <div id="trendView"><div class="empty">推演后显示数值趋势。</div></div>
+      </div>
+      <div class="view" id="view-branch"><div id="branchView"><div class="empty">点击「运行分支对比」对同一方案多次推演并并排比较走向。</div></div></div>
+      <div class="view" id="view-raw"><pre class="log" id="rawView" style="background:#0f172a;color:#cbd5e1;max-height:560px">{}</pre></div>
+      <div class="view" id="view-log"><div class="log" id="logView"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="application/json" style="display:none" />
+
+<script>
+/* ============================================================
+   架空历史推演模拟器 v2 — 单文件纯前端
+   新增：SVG 势力地图、数值趋势折线图、多分支对比、强化提示词
+   （随机事件表 + 地缘相邻效应 + 强制输出 map 字段）
+============================================================ */
+
+const PALETTE=['#2f6df0','#13b07a','#e5484d','#7c5cff','#e8893b','#0ea5c4','#c2417a','#d4a017','#3f6212','#9333ea','#0891b2','#db2777'];
+const REGIONS=[
+  {id:'na',x:70,y:60,w:95,h:85},{id:'sa',x:120,y:205,w:80,h:110},
+  {id:'we',x:315,y:95,w:70,h:60},{id:'ee',x:385,y:85,w:70,h:70},
+  {id:'naf',x:315,y:165,w:95,h:50},{id:'saf',x:345,y:220,w:95,h:96},
+  {id:'me',x:410,y:160,w:70,h:55},{id:'ca',x:475,y:115,w:70,h:55},
+  {id:'sa2',x:505,y:170,w:72,h:55},{id:'ea',x:560,y:95,w:95,h:72},
+  {id:'sea',x:560,y:172,w:82,h:55},{id:'oc',x:585,y:250,w:85,h:55}
+];
+
+/* ---------- 多语言 ---------- */
+const I18N = {
+  zh:{
+    appTitle:"架空历史推演模拟器", appSub:"自带 Key · 多语言 · 多历史节点 · 地图/趋势/分支对比",
+    tApi:"接入模型（自己接 Key）", lApiBase:"API 地址（OpenAI 兼容）", lApiKey:"API Key（仅存你本地浏览器）",
+    lApiModel:"模型名", lApiTemp:"温度", lApiMax:"最大输出 token", lJson:"JSON 模式", lJson1:"开启（推荐）", lJson0:"关闭",
+    btnTest:"测试连接", btnFillLocal:"填入本地 Ollama",
+    noteKey:"Key 只保存在你这台浏览器里，不会上传到任何服务器。未成年用户推荐用本地 Ollama（免费、无需账号/实名/Key）。",
+    tScn:"推演方案", lScnTitle:"方案标题", lStart:"起始年份", lEnd:"结束年份", lStep:"每步年数",
+    lBase:"初始世界设定 / 分歧前提（Point of Divergence）", lBaseHint:"提示：写清起点世界的关键国家、科技水平与那条「如果……」的假设。",
+    tNodes:"历史节点（分歧点）", lNodeYear:"年份", lNodeName:"名称", lNodeDesc:"该节点触发的事件描述", btnAddNode:"+ 添加节点",
+    noteNodes:"可加任意多个节点。推演到达某节点年份时，模型必须触发该事件并推演连锁反应。",
+    tRun:"推演控制", btnStart:"▶ 开始推演", btnPause:"⏸ 暂停", btnReset:"↺ 重置",
+    btnSave:"保存方案", btnExport:"导出 JSON", btnImport:"导入 JSON", btnPreset:"载入示例",
+    langLabel:"语言", progText:"尚未开始", tlEmpty:"配置好模型与方案后，点击「开始推演」。",
+    tabTimeline:"时间线", tabFactions:"势力", tabMap:"地图", tabTrend:"趋势", tabBranch:"分支对比", tabRaw:"原始 JSON", tabLog:"运行日志",
+    domains:{politics:"政治",economy:"经济",military:"军事",tech:"科技",culture:"文化",diplomacy:"外交",society:"社会"},
+    regions:{na:"北美",sa:"南美",we:"西欧",ee:"东欧",naf:"北非",saf:"撒哈拉以南非洲",me:"中东",ca:"中亚",sa2:"南亚",ea:"东亚",sea:"东南亚",oc:"大洋洲"},
+    fName:"势力",fType:"类型",fRegion:"区域",fIdeo:"意识形态",fLeader:"领导人",fGdp:"GDP",fStab:"稳定",fMil:"军力",fTech:"科技",fPop:"人口",
+    connOk:"连接成功 ✓", connFail:"连接失败：", connTesting:"测试中…", imported:"已导入方案", saved:"方案已保存", reseted:"已重置",
+    genFail:"本回合生成失败：", doneAll:"推演完成 ✅", paused:"已暂停", resumed:"继续推演", noApi:"请先填写 API 地址与模型名",
+    simStart:"开始推演：从 {s} 到 {e}，每步 {p} 年，共 {n} 步。语言：{l}",
+    lRand:"随机事件表（低概率事件）", lAdj:"地缘相邻 + 地图", lBranchN:"分支数 (2-4)", branchHint:"对同一方案多次推演（不同随机种子），并排比较走向分歧。",
+    trendMetric:"指标", mapEmpty:"推演开始后显示势力地图", trendEmpty:"推演后显示数值趋势", branchEmpty:"点击「运行分支对比」对同一方案多次推演并并排比较走向。",
+    branchFinal:"各分支终局势力对比 (科技/军力/稳定)",
+    sysRole:"你是一位严谨的架空历史推演引擎。任务：基于用户给出的初始世界设定与若干「历史节点」（分歧点），分阶段推演一段尽量符合历史逻辑、经济规律、地缘政治与科技演化的架空历史。\n要求：\n1) 连续性：后续事件必须承接前文，人物、国家、数值变化连贯可信，不突然跳跃。\n2) 多维仿真：每回合覆盖 政治 / 经济 / 军事 / 科技 / 文化 / 外交 / 社会 等维度关键事件。\n3) 数值真实：势力数值中 稳定/军力/科技 在 0-100；GDP 用合理量级（如 亿）；人口用合理数字；变化幅度合理。\n4) 历史节点：当当前年份 ≥ 某节点年份时，必须触发该节点描述的事件，并推演连锁反应。\n5) 只输出 JSON，不要任何解释性文字。用语言：{lang}。\n返回结构：\n{\"year\":<int>,\"summary\":\"<本阶段综述，{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<触发的节点事件>\"]}",
+    extraRand:"【随机事件表】在推演中适度引入低概率但符合当前时代与科技水平的随机事件（如瘟疫、大饥荒、地震/火山爆发、关键发明、君主暴毙、边疆叛乱、贸易路线改道）。出现频率适中，不要每回合都发生；事件须合理影响相关势力数值与后续走向，不得凭空推翻已确立的大国格局。",
+    extraAdj:"【地缘相邻效应】地区相邻关系（示意）：na-sa；we-ee,we-naf,we-me；ee-me,ee-ca；naf-me,naf-saf；me-ca,me-sa2；ca-ea,ca-sa2；sa2-sea；ea-sea；sea-oc。一个地区的战争、瘟疫、贸易冲击、技术扩散会沿相邻关系向外蔓延。每回合必须额外输出 \"map\" 字段，列出全部 12 个地区各自当前由哪个势力控制（用势力 id；无主或独立填 \"independent\"）。地区代码：na(北美),sa(南美),we(西欧),ee(东欧),naf(北非),saf(撒哈拉以南非洲),me(中东),ca(中亚),sa2(南亚/印度),ea(东亚),sea(东南亚),oc(大洋洲)。"
+  },
+  en:{
+    appTitle:"Alternate History Simulator", appSub:"Bring your own key · Multilingual · Multi nodes · Map/Trend/Branches",
+    tApi:"Connect model (bring your own key)", lApiBase:"API base (OpenAI-compatible)", lApiKey:"API Key (stored only in your browser)",
+    lApiModel:"Model", lApiTemp:"Temperature", lApiMax:"Max output tokens", lJson:"JSON mode", lJson1:"On (recommended)", lJson0:"Off",
+    btnTest:"Test", btnFillLocal:"Use local Ollama",
+    noteKey:"Your key is stored only in this browser and never uploaded. Under-18 users: local Ollama is free and needs no account/ID/key.",
+    tScn:"Scenario", lScnTitle:"Title", lStart:"Start year", lEnd:"End year", lStep:"Years per step",
+    lBase:"Initial world / Point of Divergence", lBaseHint:"Tip: state the key nations, tech level, and the 'what if…' assumption.",
+    tNodes:"Historical nodes (divergence points)", lNodeYear:"Year", lNodeName:"Name", lNodeDesc:"Event triggered at this node", btnAddNode:"+ Add node",
+    noteNodes:"Add any number of nodes. When simulation reaches a node's year, the model must trigger it and its chain effects.",
+    tRun:"Run control", btnStart:"▶ Start", btnPause:"⏸ Pause", btnReset:"↺ Reset",
+    btnSave:"Save", btnExport:"Export JSON", btnImport:"Import JSON", btnPreset:"Load sample",
+    langLabel:"Language", progText:"Not started", tlEmpty:"Configure model & scenario, then click Start.",
+    tabTimeline:"Timeline", tabFactions:"Factions", tabMap:"Map", tabTrend:"Trend", tabBranch:"Branches", tabRaw:"Raw JSON", tabLog:"Log",
+    domains:{politics:"Politics",economy:"Economy",military:"Military",tech:"Tech",culture:"Culture",diplomacy:"Diplomacy",society:"Society"},
+    regions:{na:"N.America",sa:"S.America",we:"W.Europe",ee:"E.Europe",naf:"N.Africa",saf:"Sub-Sahara",me:"Mid.East",ca:"C.Asia",sa2:"S.Asia",ea:"E.Asia",sea:"SE.Asia",oc:"Oceania"},
+    fName:"Faction",fType:"Type",fRegion:"Region",fIdeo:"Ideology",fLeader:"Leader",fGdp:"GDP",fStab:"Stab",fMil:"Mil",fTech:"Tech",fPop:"Pop",
+    connOk:"Connected ✓", connFail:"Connection failed: ", connTesting:"Testing…", imported:"Imported", saved:"Saved", reseted:"Reset",
+    genFail:"Turn generation failed: ", doneAll:"Simulation complete ✅", paused:"Paused", resumed:"Resumed", noApi:"Fill API base and model first",
+    simStart:"Start: from {s} to {e}, step {p} yr, {n} turns. Lang: {l}",
+    lRand:"Random event table", lAdj:"Adjacency + Map", lBranchN:"Branches (2-4)", branchHint:"Run the same scenario several times (different seeds) and compare divergences side by side.",
+    trendMetric:"Metric", mapEmpty:"Map appears after simulation", trendEmpty:"Trend appears after simulation", branchEmpty:"Click 'Run branches' to simulate the same scenario multiple times and compare.",
+    branchFinal:"Final factions per branch (tech/mil/stab)",
+    sysRole:"You are a rigorous alternate-history simulation engine. Task: given the user's initial world setting and several 'historical nodes' (divergence points), advance a phased alternate history that respects historical logic, economics, geopolitics and tech evolution.\nRules:\n1) Continuity: later events must follow earlier ones; characters, nations and numbers change coherently, no sudden jumps.\n2) Multi-domain: each turn cover Politics/Economy/Military/Tech/Culture/Diplomacy/Society.\n3) Realistic numbers: stability/military/tech in 0-100; GDP in sensible scale; population sensible; changes moderate.\n4) Nodes: when current year >= a node's year, you MUST trigger that node's event and its chain effects.\n5) Output JSON only, no prose. Language: {lang}.\nSchema:\n{\"year\":<int>,\"summary\":\"<phase summary,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<triggered node event>\"]}",
+    extraRand:"【Random event table】Sparingly inject low-probability but era/tech-appropriate random events (plague, famine, earthquake/volcano, key invention, monarch's death, border revolt, trade-route shift). Moderate frequency—not every turn. Events must plausibly affect factions' numbers and later turns, without arbitrarily overturning established great powers.",
+    extraAdj:"【Geopolitical adjacency】Region adjacency (schematic): na-sa; we-ee,we-naf,we-me; ee-me,ee-ca; naf-me,naf-saf; me-ca,me-sa2; ca-ea,ca-sa2; sa2-sea; ea-sea; sea-oc. Wars, plagues, trade shocks and tech diffusion in one region spill to neighbors. Each turn MUST also output a \"map\" field listing all 12 regions and which faction controls each (use faction id; \"independent\" if unclaimed). Region codes: na(N.America),sa(S.America),we(W.Europe),ee(E.Europe),naf(N.Africa),saf(Sub-Saharan),me(Mid.East),ca(C.Asia),sa2(S.Asia/India),ea(E.Asia),sea(SE.Asia),oc(Oceania)."
+  },
+  ja:{
+    appTitle:"IF歴史シミュレーター", appSub:"自分のキーを利用・多言語・複数ノード・地図/傾向/分岐",
+    tApi:"モデル接続（自分のキー）", lApiBase:"APIアドレス（OpenAI互換）", lApiKey:"APIキー（このブラウザのみ）",
+    lApiModel:"モデル", lApiTemp:"温度", lApiMax:"最大出力トークン", lJson:"JSONモード", lJson1:"オン（推奨）", lJson0:"オフ",
+    btnTest:"接続テスト", btnFillLocal:"ローカルOllamaを使う",
+    noteKey:"キーはこのブラウザにのみ保存され、外部に送信されません。18未満の方はローカルOllama（無料・アカウント/本人確認/キー不要）がおすすめ。",
+    tScn:"シナリオ", lScnTitle:"タイトル", lStart:"開始年", lEnd:"終了年", lStep:"ステップ年数",
+    lBase:"初期世界設定 / 分岐点（POD）", lBaseHint:"ヒント：主要国・技術水準・「もしも…」の仮定を書きます。",
+    tNodes:"歴史ノード（分岐点）", lNodeYear:"年", lNodeName:"名称", lNodeDesc:"このノードで発生する事件", btnAddNode:"+ ノード追加",
+    noteNodes:"任意の数のノードを追加。シミュレーションがノードの年につくと、その事件を必ず発生させ連鎖を推算します。",
+    tRun:"実行制御", btnStart:"▶ 開始", btnPause:"⏸ 一時停止", btnReset:"↺ リセット",
+    btnSave:"保存", btnExport:"JSON出力", btnImport:"JSON入力", btnPreset:"サンプル",
+    langLabel:"言語", progText:"未開始", tlEmpty:"モデルとシナリオを設定して「開始」を押してください。",
+    tabTimeline:"タイムライン", tabFactions:"勢力", tabMap:"地図", tabTrend:"傾向", tabBranch:"分岐", tabRaw:"生JSON", tabLog:"ログ",
+    domains:{politics:"政治",economy:"経済",military:"軍事",tech:"技術",culture:"文化",diplomacy:"外交",society:"社会"},
+    regions:{na:"北米",sa:"南米",we:"西欧",ee:"東欧",naf:"北アフリカ",saf:"サハラ以南",me:"中東",ca:"中央アジア",sa2:"南アジア",ea:"東アジア",sea:"東南アジア",oc:"オセアニア"},
+    fName:"勢力",fType:"種別",fRegion:"地域",fIdeo:"イデオロギー",fLeader:"指導者",fGdp:"GDP",fStab:"安定",fMil:"軍事",fTech:"技術",fPop:"人口",
+    connOk:"接続成功 ✓", connFail:"接続失敗：", connTesting:"テスト中…", imported:"読み込み完了", saved:"保存しました", reseted:"リセット",
+    genFail:"このターンの生成失敗：", doneAll:"シミュレーション完了 ✅", paused:"一時停止", resumed:"再開", noApi:"APIアドレスとモデルを入力してください",
+    simStart:"開始：{s}年→{e}年、ステップ{p}年、計{n}ターン。言語：{l}",
+    lRand:"ランダムイベント表", lAdj:"隣接効果＋地図", lBranchN:"分岐数(2-4)", branchHint:"同じシナリオを複数回（異シード）実行し、分岐を比較。",
+    trendMetric:"指標", mapEmpty:"地図は実行後に表示", trendEmpty:"傾向は実行後に表示", branchEmpty:"「分岐実行」で同じシナリオを複数回実行して比較。",
+    branchFinal:"各分岐の終局勢力 (技/軍/安)",
+    sysRole:"あなたは厳密なIF歴史シミュレーションエンジンです。ユーザーの初期世界設定と複数の「歴史ノード」（分岐点）に基づき、歴史の論理・経済・地政学・技術進化に沿った段階的IF歴史を推算します。\n規則：\n1) 連続性：後の事件は前の事件を引き継ぐ。人物・国家・数値は連続的に変化し、急跳びしない。\n2) 多分野：各ターンは政治/経済/軍事/技術/文化/外交/社会を網羅。\n3) 現実的数値：安定/軍事/技術は0-100；GDPは妥当な規模；人口は妥当；変化は穏やか。\n4) ノード：現在年≥ノード年のとき、その事件を必ず発生させ連鎖を推算。\n5) プローズなしでJSONのみ出力。言語：{lang}。\n構造：\n{\"year\":<int>,\"summary\":\"<段階要約,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<発生したノード事件>\"]}",
+    extraRand:"【ランダムイベント表】時代と技術水準に合った低確率の出来事（疫病、大飢饉、地震/火山、重要発明、君主の死、辺境反乱、交易路変更）を適度に挿入。頻度は穏やか（毎ターンではない）。出来事は勢力の数値と後の展開に妥当に影響させ、確立された大国構造を勝手に覆さない。",
+    extraAdj:"【地政学隣接】地域の隣接（概略）：na-sa；we-ee,we-naf,we-me；ee-me,ee-ca；naf-me,naf-saf；me-ca,me-sa2；ca-ea,ca-sa2；sa2-sea；ea-sea；sea-oc。ある地域の戦争・疫病・交易ショック・技術拡散は隣接へ波及する。各ターンは必ず \"map\" フィールドを出力し、12地域それぞれをどの勢力が支配しているか（勢力id、無主は \"independent\"）を列挙。地域コード：na(北米),sa(南米),we(西欧),ee(東欧),naf(北アフリカ),saf(サハラ以南),me(中東),ca(中央アジア),sa2(南アジア),ea(東アジア),sea(東南アジア),oc(オセアニア)。"
+  },
+  es:{
+    appTitle:"Simulador de Historia Alternativa", appSub:"Tu clave · Multilingüe · Varios nodos · Mapa/Tendencia/Ramas",
+    tApi:"Conectar modelo (tu clave)", lApiBase:"URL API (compatible OpenAI)", lApiKey:"API Key (solo en tu navegador)",
+    lApiModel:"Modelo", lApiTemp:"Temperatura", lApiMax:"Máx tokens", lJson:"Modo JSON", lJson1:"Activo (recom.)", lJson0:"Off",
+    btnTest:"Probar", btnFillLocal:"Usar Ollama local",
+    noteKey:"Tu clave se guarda solo en este navegador y no se sube. Menores: Ollama local es gratis y no requiere cuenta/ID/clave.",
+    tScn:"Escenario", lScnTitle:"Título", lStart:"Año inicio", lEnd:"Año fin", lStep:"Años por paso",
+    lBase:"Mundo inicial / Punto de divergencia", lBaseHint:"Consejo: indica naciones clave, nivel tecnológico y el 'qué pasaría si…'.",
+    tNodes:"Nodos históricos (divergencia)", lNodeYear:"Año", lNodeName:"Nombre", lNodeDesc:"Evento en este nodo", btnAddNode:"+ Añadir nodo",
+    noteNodes:"Añade los nodos que quieras. Al llegar a su año, el modelo debe disparar el evento y sus efectos.",
+    tRun:"Control", btnStart:"▶ Iniciar", btnPause:"⏸ Pausar", btnReset:"↺ Reiniciar",
+    btnSave:"Guardar", btnExport:"Exportar JSON", btnImport:"Importar JSON", btnPreset:"Ejemplo",
+    langLabel:"Idioma", progText:"Sin iniciar", tlEmpty:"Configura modelo y escenario, luego Iniciar.",
+    tabTimeline:"Línea de tiempo", tabFactions:"Faccciones", tabMap:"Mapa", tabTrend:"Tendencia", tabBranch:"Ramas", tabRaw:"JSON crudo", tabLog:"Registro",
+    domains:{politics:"Política",economy:"Economía",military:"Militar",tech:"Tecnología",culture:"Cultura",diplomacy:"Diplomacia",society:"Sociedad"},
+    regions:{na:"América N",sa:"América S",we:"Europa O",ee:"Europa E",naf:"Áfr.Norte",saf:"Áfr.Subsah.",me:"Medio Or.",ca:"Asia Cent.",sa2:"S.Asia",ea:"Asia E",sea:"SE.Asia",oc:"Oceanía"},
+    fName:"Facción",fType:"Tipo",fRegion:"Región",fIdeo:"Ideología",fLeader:"Líder",fGdp:"PIB",fStab:"Estab",fMil:"Mil",fTech:"Tec",fPop:"Pobl",
+    connOk:"Conectado ✓", connFail:"Fallo de conexión: ", connTesting:"Probando…", imported:"Importado", saved:"Guardado", reseted:"Reiniciado",
+    genFail:"Fallo en el turno: ", doneAll:"Simulación completa ✅", paused:"Pausado", resumed:"Reanudado", noApi:"Rellena URL y modelo",
+    simStart:"Inicio: {s}→{e}, paso {p} años, {n} turnos. Idioma: {l}",
+    lRand:"Tabla de eventos aleatorios", lAdj:"Adyacencia + Mapa", lBranchN:"Ramas (2-4)", branchHint:"Ejecuta el mismo escenario varias veces (semillas distintas) y compara divergencias.",
+    trendMetric:"Métrica", mapEmpty:"El mapa aparece tras simular", trendEmpty:"La tendencia aparece tras simular", branchEmpty:"Pulsa 'Ejecutar ramas' para simular varias veces y comparar.",
+    branchFinal:"Faccciones finales por rama (tec/mil/estab)",
+    sysRole:"Eres un motor riguroso de historia alternativa. Dado el mundo inicial y varios 'nodos históricos' (puntos de divergencia), avanza una historia por fases que respete la lógica histórica, economía, geopolítica y evolución tecnológica.\nReglas:\n1) Continuidad: los eventos posteriores siguen a los anteriores; personajes, naciones y números cambian coherentemente, sin saltos.\n2) Multi-dominio: cada turno cubre Política/Economía/Militar/Tecnología/Cultura/Diplomacia/Sociedad.\n3) Números realistas: estabilidad/militar/tecnología en 0-100; PIB en escala sensata; población sensata; cambios moderados.\n4) Nodos: cuando el año actual >= año del nodo, DEBES disparar ese evento y sus efectos en cadena.\n5) Solo JSON, sin prosa. Idioma: {lang}.\nEsquema:\n{\"year\":<int>,\"summary\":\"<resumen del tramo,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<evento de nodo disparado>\"]}",
+    extraRand:"【Tabla de eventos aleatorios】Inserta con moderación eventos de baja probabilidad pero acordes a la época y tecnología (plaga, hambruna, terremoto/volcán, invento clave, muerte del monarca, revuelta fronteriza, cambio de ruta comercial). Frecuencia moderada, no cada turno. Los eventos deben afectar plausiblemente los números de las facciones y los turnos siguientes, sin derrocar arbitrariamente a las grandes potencias.",
+    extraAdj:"【Adyacencia geopolítica】Adyacencia (esquemática): na-sa; we-ee,we-naf,we-me; ee-me,ee-ca; naf-me,naf-saf; me-ca,me-sa2; ca-ea,ca-sa2; sa2-sea; ea-sea; sea-oc. Guerras, plagas, choques comerciales y difusión tecnológica en una región se propagan a vecinas. Cada turno DEBE incluir \"map\" con las 12 regiones y qué facción controla cada una (id de facción; \"independent\" si nadie). Códigos: na(América N),sa(América S),we(Europa O),ee(Europa E),naf(Áfr.Norte),saf(Áfr.Subsah.),me(Medio Or.),ca(Asia Cent.),sa2(S.Asia),ea(Asia E),sea(SE.Asia),oc(Oceanía)."
+  },
+  fr:{
+    appTitle:"Simulateur d'Histoire Alternative", appSub:"Ta clé · Multilingue · Plusieurs nœuds · Carte/Tend./Branches",
+    tApi:"Connecter le modèle (ta clé)", lApiBase:"URL API (compatible OpenAI)", lApiKey:"Clé API (uniquement ce navigateur)",
+    lApiModel:"Modèle", lApiTemp:"Température", lApiMax:"Max tokens", lJson:"Mode JSON", lJson1:"Actif (recommandé)", lJson0:"Off",
+    btnTest:"Tester", btnFillLocal:"Ollama local",
+    noteKey:"Ta clé est stockée uniquement dans ce navigateur et n'est jamais envoyée. Mineurs : Ollama local est gratuit, sans compte/ID/clé.",
+    tScn:"Scénario", lScnTitle:"Titre", lStart:"Année début", lEnd:"Année fin", lStep:"Années/étape",
+    lBase:"Monde initial / Point de divergence", lBaseHint:"Conseil : indique nations clés, niveau tech et le 'et si…'.",
+    tNodes:"Nœuds historiques (divergence)", lNodeYear:"Année", lNodeName:"Nom", lNodeDesc:"Événement à ce nœud", btnAddNode:"+ Ajouter nœud",
+    noteNodes:"Ajoute autant de nœuds que tu veux. Atteindre l'année d'un nœud force son déclenchement et ses effets.",
+    tRun:"Contrôle", btnStart:"▶ Démarrer", btnPause:"⏸ Pause", btnReset:"↺ Réinit",
+    btnSave:"Sauver", btnExport:"Export JSON", btnImport:"Import JSON", btnPreset:"Exemple",
+    langLabel:"Langue", progText:"Non démarré", tlEmpty:"Configure modèle et scénario, puis Démarrer.",
+    tabTimeline:"Chronologie", tabFactions:"Factions", tabMap:"Carte", tabTrend:"Tendance", tabBranch:"Branches", tabRaw:"JSON brut", tabLog:"Journal",
+    domains:{politics:"Politique",economy:"Économie",military:"Militaire",tech:"Technologie",culture:"Culture",diplomacy:"Diplomatie",society:"Société"},
+    regions:{na:"Am.Nord",sa:"Am.Sud",we:"Eur.Ouest",ee:"Eur.Est",naf:"Afr.Nord",saf:"Afr.Subsah.",me:"Moyen-Or.",ca:"Asie Cent.",sa2:"S.Asie",ea:"Asie E",sea:"SE.Asie",oc:"Océanie"},
+    fName:"Faction",fType:"Type",fRegion:"Région",fIdeo:"Idéologie",fLeader:"Leader",fGdp:"PIB",fStab:"Stab",fMil:"Mil",fTech:"Tech",fPop:"Pop",
+    connOk:"Connecté ✓", connFail:"Échec connexion : ", connTesting:"Test…", imported:"Importé", saved:"Sauvé", reseted:"Réinitialisé",
+    genFail:"Échec du tour : ", doneAll:"Simulation terminée ✅", paused:"En pause", resumed:"Repris", noApi:"Remplis URL et modèle",
+    simStart:"Début : {s}→{e}, pas {p} ans, {n} tours. Langue : {l}",
+    lRand:"Table d'événements aléatoires", lAdj:"Adyacence + Carte", lBranchN:"Branches (2-4)", branchHint:"Exécute plusieurs fois le même scénario (graines différentes) et compare les divergences.",
+    trendMetric:"Métrique", mapEmpty:"La carte apparaît après simulation", trendEmpty:"La tendance apparaît après simulation", branchEmpty:"Clique 'Exécuter branches' pour simuler plusieurs fois et comparer.",
+    branchFinal:"Factions finales par branche (tech/mil/stab)",
+    sysRole:"Tu es un moteur rigoureux d'histoire alternative. À partir du monde initial et de plusieurs 'nœuds historiques' (points de divergence), avance une histoire par phases respectant la logique historique, l'économie, la géopolitique et l'évolution technologique.\nRègles :\n1) Continuité : les événements suivants découlent des précédents ; personnages, nations et chiffres évoluent cohérentment, sans sauts.\n2) Multi-domaines : chaque tour couvre Politique/Économie/Militaire/Tech/Culture/Diplomatie/Société.\n3) Chiffres réalistes : stabilité/militaire/tech en 0-100 ; PIB à l'échelle ; population sensée ; changements modérés.\n4) Nœuds : quand l'année courante >= année du nœud, tu DOIS déclencher cet événement et ses effets en chaîne.\n5) JSON uniquement, sans prose. Langue : {lang}.\nSchéma :\n{\"year\":<int>,\"summary\":\"<résumé de la phase,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<événement de nœud déclenché>\"]}",
+    extraRand:"【Table d'événements aléatoires】Injecte avec modération des événements de faible probabilité mais cohérents avec l'époque et la tech (peste, famine, séisme/volcan, invention clé, mort du souverain, révolte frontalière, déroutage commercial). Fréquence modérée, pas à chaque tour. Ces événements doivent affecter raisonnablement les chiffres des factions et les tours suivants, sans renverser arbitrairement les grandes puissances.",
+    extraAdj:"【Adyacence géopolitique】Adyacence (schématique) : na-sa ; we-ee,we-naf,we-me ; ee-me,ee-ca ; naf-me,naf-saf ; me-ca,me-sa2 ; ca-ea,ca-sa2 ; sa2-sea ; ea-sea ; sea-oc. Guerres, pestes, chocs commerciaux et diffusion tech d'une région se propagent aux voisines. Chaque tour DOIT ajouter \"map\" listant les 12 régions et la faction qui contrôle chacune (id de faction ; \"independent\" si personne). Codes : na(Am.Nord),sa(Am.Sud),we(Eur.Ouest),ee(Eur.Est),naf(Afr.Nord),saf(Afr.Subsah.),me(Moyen-Or.),ca(Asie Cent.),sa2(S.Asie),ea(Asie E),sea(SE.Asie),oc(Océanie)."
+  }
+};
+
+const DOM_COLORS = {politics:"#2f6df0",economy:"#13b07a",military:"#e5484d",tech:"#7c5cff",culture:"#e8893b",diplomacy:"#0ea5c4",society:"#c2417a"};
+
+/* ---------- 状态 ---------- */
+let LANG = localStorage.getItem('ahs_lang') || 'zh';
+let state = {
+  api:{base:"", key:"", model:"", temp:0.8, max:4096, json:true},
+  opt:{rand:true, adj:true},
+  scenario:{title:"", start:100, end:1500, step:50, base:"", nodes:[]},
+  sim:{turns:[], factions:[], year:null, idx:0, running:false, paused:false, factionColors:{}},
+  branches:[],
+  log:[]
+};
+let logLines = [];
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+function t(k){ return (I18N[LANG]&&I18N[LANG][k]!=null)?I18N[LANG][k]:I18N.zh[k]; }
+function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1800); }
+function log(msg,cls){ logLines.push({msg,cls:cls||'info'}); const v=$('logView'); if(v){ v.innerHTML+='<span class="'+(cls||'info')+'">'+escapeHtml(msg)+'\n</span>'; v.scrollTop=v.scrollHeight; } }
+function escapeHtml(s){ return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function totalSteps(){ return Math.max(1,Math.ceil((state.scenario.end-state.scenario.start)/state.scenario.step)); }
+
+/* ---------- 界面文本 ---------- */
+function applyLang(){
+  document.documentElement.lang = LANG;
+  const map = {
+    appTitle:'appTitle',appSub:'appSub',tApi:'tApi',lApiBase:'lApiBase',lApiKey:'lApiKey',lApiModel:'lApiModel',
+    lApiTemp:'lApiTemp',lApiMax:'lApiMax',lJson:'lJson',lJson1:'lJson1',lJson0:'lJson0',btnTest:'btnTest',
+    btnFillLocal:'btnFillLocal',noteKey:'noteKey',tScn:'tScn',lScnTitle:'lScnTitle',lStart:'lStart',lEnd:'lEnd',
+    lStep:'lStep',lBase:'lBase',lBaseHint:'lBaseHint',tNodes:'tNodes',lNodeYear:'lNodeYear',lNodeName:'lNodeName',
+    lNodeDesc:'lNodeDesc',btnAddNode:'btnAddNode',noteNodes:'noteNodes',tRun:'tRun',btnStart:'btnStart',
+    btnPause:'btnPause',btnReset:'btnReset',btnSave:'btnSave',btnExport:'btnExport',btnImport:'btnImport',
+    btnPreset:'btnPreset',langLabel:'langLabel',progText:'progText',tlEmpty:'tlEmpty',tabTimeline:'tabTimeline',
+    tabFactions:'tabFactions',tabMap:'tabMap',tabTrend:'tabTrend',tabBranch:'tabBranch',tabRaw:'tabRaw',tabLog:'tabLog',
+    lRand:'lRand',lAdj:'lAdj',lBranchN:'lBranchN',branchHint:'branchHint',trendMetric:'trendMetric',
+    mapEmpty:'mapEmpty',trendEmpty:'trendEmpty',branchEmpty:'branchEmpty',branchFinal:'branchFinal',
+    oTech:'oTech',oStab:'oStab',oMil:'oMil'
+  };
+  for(const id in map){ const el=$(id); if(el) el.textContent=t(map[id]); }
+  $('optRand').checked = state.opt.rand; $('optAdj').checked = state.opt.adj;
+  $('lang').value = LANG;
+  renderNodes(); refreshViews();
+}
+
+/* ---------- API 持久化 ---------- */
+function loadApi(){
+  try{ const a=JSON.parse(localStorage.getItem('ahs_api')||'{}'); Object.assign(state.api,a); }catch(e){}
+  try{ const o=JSON.parse(localStorage.getItem('ahs_opt')||'null'); if(o) state.opt=o; }catch(e){}
+  $('apiBase').value=state.api.base; $('apiKey').value=state.api.key; $('apiModel').value=state.api.model;
+  $('apiTemp').value=state.api.temp; $('apiMax').value=state.api.max; $('jsonMode').value=state.api.json?'1':'0';
+}
+function saveApi(){
+  state.api={base:$('apiBase').value.trim(), key:$('apiKey').value.trim(), model:$('apiModel').value.trim(),
+    temp:parseFloat($('apiTemp').value)||0.8, max:parseInt($('apiMax').value)||4096, json:$('jsonMode').value==='1'};
+  state.opt={rand:$('optRand').checked, adj:$('optAdj').checked};
+  localStorage.setItem('ahs_api',JSON.stringify(state.api));
+  localStorage.setItem('ahs_opt',JSON.stringify(state.opt));
+}
+function fillLocal(){ $('apiBase').value='http://localhost:11434/v1'; $('apiModel').value='qwen2.5:latest'; $('apiKey').value=''; saveApi(); toast('已填入本地 Ollama'); }
+
+async function testConn(){
+  saveApi();
+  if(!state.api.base||!state.api.model){ toast(t('noApi')); return; }
+  $('btnTest').textContent=t('connTesting'); $('btnTest').disabled=true;
+  try{ const r = await callLLM([{role:'user',content:'回复 JSON: {"ok":true}'}], true); log('TEST '+t('connOk')+' → '+r.slice(0,80),'ok'); toast(t('connOk')); }
+  catch(e){ log(t('connFail')+e.message,'err'); toast(t('connFail')+e.message); }
+  finally{ $('btnTest').textContent=t('btnTest'); $('btnTest').disabled=false; }
+}
+
+/* ---------- LLM 调用 ---------- */
+async function callLLM(messages, isTest){
+  const cfg=state.api;
+  const url=cfg.base.replace(/\/+$/,'')+'/chat/completions';
+  const body={model:cfg.model, messages, temperature:cfg.temp, max_tokens:cfg.max};
+  if(cfg.json && !isTest) body.response_format={type:'json_object'};
+  if(isTest) body.max_tokens=64;
+  const headers={'Content-Type':'application/json'};
+  if(cfg.key) headers['Authorization']='Bearer '+cfg.key;
+  const res=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
+  if(!res.ok){ const txt=await res.text().catch(()=> ''); throw new Error('HTTP '+res.status+' '+txt.slice(0,200)); }
+  const data=await res.json();
+  return data.choices&&data.choices[0]&&data.choices[0].message?data.choices[0].message.content:'';
+}
+function parseJSON(s){
+  try{ return JSON.parse(s); }catch(e){
+    const a=s.indexOf('{'), b=s.lastIndexOf('}');
+    if(a>=0&&b>a){ try{ return JSON.parse(s.slice(a,b+1)); }catch(e2){} }
+    throw new Error('JSON 解析失败');
+  }
+}
+function buildSys(lang){
+  let s=I18N[lang].sysRole.replace('{lang}',lang);
+  if(state.opt.rand) s+='\n\n'+I18N[lang].extraRand;
+  if(state.opt.adj) s+='\n\n'+I18N[lang].extraAdj;
+  return s;
+}
+
+/* ---------- 历史节点 ---------- */
+function addNode(){
+  const y=parseInt($('nYear').value), n=$('nName').value.trim(), d=$('nDesc').value.trim();
+  if(!y||!n){ toast('填年份和名称'); return; }
+  state.scenario.nodes.push({year:y,name:n,desc:d});
+  $('nYear').value=''; $('nName').value=''; $('nDesc').value='';
+  renderNodes();
+}
+function delNode(i){ state.scenario.nodes.splice(i,1); renderNodes(); }
+function renderNodes(){
+  const wrap=$('nodeList'); if(!wrap) return;
+  if(!state.scenario.nodes.length){ wrap.innerHTML='<div class="muted">'+t('noteNodes')+'</div>'; return; }
+  wrap.innerHTML=state.scenario.nodes.map((nd,i)=>
+    '<div class="node"><div class="top"><span class="yr">'+nd.year+'</span><strong>'+escapeHtml(nd.name)+'</strong>'+
+    '<button class="btn sm ghost" onclick="delNode('+i+')">✕</button></div>'+
+    '<div class="muted" style="margin-top:4px">'+escapeHtml(nd.desc||'')+'</div></div>').join('');
+}
+
+/* ---------- 配色 ---------- */
+function ensureColors(sim, factions){
+  sim.factionColors = sim.factionColors||{};
+  let i=Object.keys(sim.factionColors).length;
+  factions.forEach(f=>{ if(f.id && !sim.factionColors[f.id]){ sim.factionColors[f.id]=PALETTE[i%PALETTE.length]; i++; } });
+}
+
+/* ---------- 推演 ---------- */
+function readScenario(){
+  state.scenario={title:$('scnTitle').value.trim(), start:parseInt($('startYear').value),
+    end:parseInt($('endYear').value), step:Math.max(1,parseInt($('stepYears').value)||1),
+    base:$('baseContext').value.trim(), nodes:state.scenario.nodes};
+}
+async function startSim(){
+  saveApi(); readScenario();
+  if(!state.api.base||!state.api.model){ toast(t('noApi')); return; }
+  if(state.sim.running) return;
+  if(state.sim.turns.length===0){
+    state.sim={turns:[],factions:[],year:state.scenario.start,idx:0,running:false,paused:false,factionColors:{}};
+  }else{ state.sim.running=false; state.sim.paused=false; }
+  state.branches=[];
+  log(t('simStart').replace('{s}',state.scenario.start).replace('{e}',state.scenario.end).replace('{p}',state.scenario.step).replace('{n}',totalSteps()).replace('{l}',LANG),'info');
+  setRunning(true); runLoop();
+}
+function pauseSim(){ if(state.sim.running){ state.sim.paused=true; setRunning(false); toast(t('paused')); } }
+function resetSim(){
+  state.sim={turns:[],factions:[],year:null,idx:0,running:false,paused:false,factionColors:{}};
+  state.branches=[];
+  renderNodes(); refreshViews(); $('rawView').textContent='{}';
+  $('progBar').style.width='0%'; $('progText').textContent=t('progText');
+  $('branchBar').style.width='0%'; $('branchText').textContent='';
+  log('↺ '+t('reseted'),'info');
+}
+function setRunning(on){
+  state.sim.running=on;
+  $('btnStart').disabled=on; $('btnPause').disabled=!on;
+  $('btnStart').textContent = (state.sim.turns.length>0 && !on)? '▶ '+t('resumed') : '▶ '+t('btnStart');
+}
+async function runLoop(){
+  while(state.sim.idx < totalSteps() && state.sim.running && !state.sim.paused){
+    try{
+      const turn=await genTurn(state.sim, LANG, null);
+      state.sim.turns.push(turn);
+      if(turn.factions&&turn.factions.length) state.sim.factions=turn.factions;
+      state.sim.idx++;
+      state.sim.year=state.scenario.start+state.sim.idx*state.scenario.step;
+      refreshViews(); renderRaw();
+      const pct=Math.round(state.sim.idx/totalSteps()*100);
+      $('progBar').style.width=pct+'%';
+      $('progText').textContent=state.scenario.start+(state.sim.idx-1)*state.scenario.step+' → '+state.scenario.start+state.sim.idx*state.scenario.step+'  ('+state.sim.idx+'/'+totalSteps()+')';
+      log('✓ turn '+state.sim.idx+'/'+totalSteps()+' @ '+turn.year,'ok');
+    }catch(e){
+      log(t('genFail')+e.message,'err'); state.sim.paused=true; setRunning(false); toast(t('genFail')+e.message); return;
+    }
+    await sleep(50);
+  }
+  if(state.sim.idx>=totalSteps()){ setRunning(false); log(t('doneAll'),'ok'); toast(t('doneAll')); }
+}
+async function genTurn(sim, lang, seedNote){
+  const sys=buildSys(lang);
+  const due = state.scenario.nodes.filter(nd=> nd.year <= (state.scenario.start+sim.idx*state.scenario.step) && nd.year > (state.scenario.start+(sim.idx-1)*state.scenario.step));
+  let userMsg;
+  if(sim.idx===0){
+    userMsg = '【初始世界设定 / POD】\n'+state.scenario.base+'\n\n【已定义历史节点】\n'+
+      state.scenario.nodes.map(n=>'- '+n.year+'年：'+n.name+' — '+n.desc).join('\n')+
+      '\n\n请建立初始世界状态（factions 列表，至少 3 个，并给每个 faction 分配唯一 id），并推演从 '+state.scenario.start+' 年开始的第一个 '+state.scenario.step+' 年。同时输出本回合的 map（12 个地区控制）。只输出JSON。';
+  }else{
+    const curYear=state.scenario.start+sim.idx*state.scenario.step;
+    userMsg = '【当前年份】'+(state.scenario.start+(sim.idx-1)*state.scenario.step)+'\n【当前世界状态】\n'+
+      JSON.stringify({year:state.scenario.start+(sim.idx-1)*state.scenario.step, factions:sim.factions},null,1)+
+      '\n\n【本回合需触发的历史节点】\n'+(due.length?due.map(n=>'- '+n.year+'年：'+n.name+' — '+n.desc).join('\n'):'（无）')+
+      '\n\n请推演接下来 '+state.scenario.step+' 年（至 '+curYear+' 年），更新所有 factions 的完整最新数值与 map，保持连续性与真实性。只输出JSON。';
+  }
+  if(seedNote) userMsg += '\n\n【随机种子】'+seedNote+'（用于让本次推演走向与其他次不同）';
+  const content=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}], false);
+  const parsed=parseJSON(content);
+  if(!parsed.year) parsed.year=state.scenario.start+sim.idx*state.scenario.step;
+  if(!parsed.events) parsed.events=[];
+  if(!parsed.factions||!parsed.factions.length) parsed.factions=sim.factions;
+  if(!parsed.map) parsed.map=[];
+  ensureColors(sim, parsed.factions);
+  return parsed;
+}
+
+/* ---------- 分支对比 ---------- */
+async function runBranches(){
+  saveApi(); readScenario();
+  if(!state.api.base||!state.api.model){ toast(t('noApi')); return; }
+  const n=Math.min(4,Math.max(2,parseInt($('branchN').value)||3));
+  state.branches=[];
+  $('btnBranch').disabled=true;
+  log('▶ 分支对比 x'+n,'info');
+  for(let b=0;b<n;b++){
+    const sim={turns:[],factions:[],year:state.scenario.start,idx:0,running:false,paused:false,factionColors:{}};
+    const seed=Math.random().toString(36).slice(2,8);
+    $('branchText').textContent='分支 '+(b+1)+'/'+n+' 推演中… (seed '+seed+')';
+    for(let i=0;i<totalSteps();i++){
+      try{ const turn=await genTurn(sim,LANG,'#'+seed); sim.turns.push(turn); if(turn.factions&&turn.factions.length) sim.factions=turn.factions; sim.idx++; sim.year=state.scenario.start+sim.idx*state.scenario.step; }
+      catch(e){ log('分支'+(b+1)+' 失败: '+e.message,'err'); break; }
+    }
+    state.branches.push({sim,seed});
+    $('branchBar').style.width=Math.round((b+1)/n*100)+'%';
+    log('✓ 分支 '+(b+1)+' 完成','ok');
+  }
+  $('btnBranch').disabled=false; $('branchText').textContent='完成 '+n+' 个分支';
+  renderBranches();
+}
+function renderBranches(){
+  const el=$('branchView'); if(!el) return;
+  if(!state.branches||!state.branches.length){ el.innerHTML='<div class="empty">'+t('branchEmpty')+'</div>'; return; }
+  const steps=totalSteps();
+  let html='<div class="muted" style="margin-bottom:8px">每一行是一个推演年份，并排展示各分支的综述，便于比较走向分歧。</div>';
+  html+='<table><thead><tr><th>年份</th>'+state.branches.map((br,i)=>'<th>分支 '+(i+1)+'<br><span class="muted">seed '+br.seed+'</span></th>').join('')+'</tr></thead><tbody>';
+  for(let i=0;i<steps;i++){
+    const yr=state.scenario.start+(i+1)*state.scenario.step;
+    html+='<tr><td><strong>'+yr+'</strong></td>'+state.branches.map(br=>{
+      const tr=br.sim.turns[i]; if(!tr) return '<td class="muted">—</td>';
+      const div=(tr.divergences||[]).length?'<div class="muted" style="margin-top:4px">⚡ '+escapeHtml((tr.divergences||[]).join('；'))+'</div>':'';
+      return '<td style="vertical-align:top"><div>'+escapeHtml(tr.summary||'')+'</div>'+div+'</td>';
+    }).join('')+'</tr>';
+  }
+  html+='</tbody></table>';
+  html+='<h3 style="margin-top:16px">'+t('branchFinal')+'</h3>';
+  html+='<table><thead><tr><th>势力</th>'+state.branches.map((br,i)=>'<th>分支'+(i+1)+'</th>').join('')+'</tr></thead><tbody>';
+  const f0=state.branches[0].sim.factions||[];
+  f0.forEach(f=>{
+    html+='<tr><td><strong>'+escapeHtml(f.name||'')+'</strong></td>'+state.branches.map(br=>{
+      const ff=(br.sim.factions||[]).find(x=>x.id===f.id)||{};
+      return '<td>'+((ff.tech!=null)?ff.tech:'-')+' / '+((ff.military!=null)?ff.military:'-')+' / '+((ff.stability!=null)?ff.stability:'-')+'</td>';
+    }).join('')+'</tr>';
+  });
+  html+='</tbody></table>';
+  el.innerHTML=html;
+}
+
+/* ---------- 渲染输出 ---------- */
+function refreshViews(){ renderTimeline(); renderFactions(); renderMap(); renderTrend($('trendSel')?$('trendSel').value:'tech'); }
+function renderTimeline(){
+  const el=$('timeline'); if(!el) return;
+  if(!state.sim.turns.length){ el.innerHTML='<div class="empty">'+t('tlEmpty')+'</div>'; return; }
+  el.innerHTML=state.sim.turns.map(tr=>{
+    const evs=(tr.events||[]).map(e=>{
+      const c=DOM_COLORS[e.domain]||'#888';
+      return '<div class="ev"><span class="dot" style="background:'+c+'"></span>'+
+        '<div style="flex:1"><div class="dom" style="color:'+c+'">'+((t('domains')[e.domain]||e.domain).toUpperCase())+'</div>'+
+        '<div class="ttl">'+escapeHtml(e.title||'')+'</div>'+
+        '<div>'+escapeHtml(e.description||'')+'</div>'+
+        (e.location?'<div class="loc">📍 '+escapeHtml(e.location)+'</div>':'')+'</div>'+
+        (e.severity?'<span class="sev">严重度 '+e.severity+'/5</span>':'')+'</div>';
+    }).join('');
+    const div=(tr.divergences||[]).map(d=>'• '+escapeHtml(d)).join('<br>');
+    return '<div class="turn"><div class="yr">'+tr.year+'</div>'+
+      '<div class="sum">'+escapeHtml(tr.summary||'')+'</div>'+
+      (evs||'<div class="muted">（无事件）</div>')+
+      (div?'<div class="divergences"><strong>⚡ 触发的节点</strong><br>'+div+'</div>':'')+'</div>';
+  }).join('');
+}
+function renderFactions(){
+  const el=$('factions'); if(!el) return;
+  if(!state.sim.factions.length){ el.innerHTML='<div class="empty">推演开始后显示势力数值。</div>'; return; }
+  const rows=state.sim.factions.map(f=>{
+    const bar=(v,c)=>'<span class="metric" style="background:'+c+'22;color:'+c+'">'+(v!=null?v:'-')+'</span><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(v)||0))+'%;background:'+c+'"></i></div>';
+    return '<tr><td><strong>'+escapeHtml(f.name||'')+'</strong><br><span class="muted">'+escapeHtml(f.type||'')+' · '+escapeHtml(f.region||'')+'</span></td>'+
+      '<td>'+escapeHtml(f.ideology||'')+'</td><td>'+escapeHtml(f.leader||'')+'</td>'+
+      '<td>'+escapeHtml(String(f.gdp!=null?f.gdp:''))+'</td>'+
+      '<td>'+bar(f.stability,'#13b07a')+'</td><td>'+bar(f.military,'#e5484d')+'</td>'+
+      '<td>'+bar(f.tech,'#7c5cff')+'</td><td>'+escapeHtml(String(f.population!=null?f.population:''))+'</td></tr>';
+  }).join('');
+  el.innerHTML='<table><thead><tr><th>'+t('fName')+'</th><th>'+t('fIdeo')+'</th><th>'+t('fLeader')+'</th>'+
+    '<th>'+t('fGdp')+'</th><th>'+t('fStab')+'</th><th>'+t('fMil')+'</th><th>'+t('fTech')+'</th><th>'+t('fPop')+'</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function renderMap(){
+  const el=$('mapView'); if(!el) return;
+  const turns=state.sim.turns;
+  if(!turns.length){ el.innerHTML='<div class="empty">'+t('mapEmpty')+'</div>'; return; }
+  const last=turns[turns.length-1];
+  const ctrl={}; (last.map||[]).forEach(m=> ctrl[m.region]=m.faction);
+  let svg='<svg viewBox="0 0 680 360" width="100%" style="background:#eaf2fb;border-radius:12px">';
+  svg+='<rect x="0" y="0" width="680" height="360" fill="#eaf2fb"/>';
+  REGIONS.forEach(r=>{
+    const fid=ctrl[r.id];
+    let fill='#cfd8e3', stroke='#9fb3c8', label='';
+    if(fid && fid!=='independent' && fid!=='none'){
+      fill=state.sim.factionColors[fid]||'#7c5cff';
+      const f=state.sim.factions.find(x=>x.id===fid);
+      label=f?f.name:fid;
+    } else if(fid==='independent'){ fill='#e7ecf3'; label='独立'; }
+    svg+='<g><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="8" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.2"/>';
+    svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2-4)+'" text-anchor="middle" font-size="11" fill="#1f2933" font-weight="700">'+((t('regions')[r.id])||r.id)+'</text>';
+    if(label) svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2+12)+'" text-anchor="middle" font-size="10" fill="#1f2933">'+escapeHtml(label)+'</text>';
+    svg+='</g>';
+  });
+  svg+='</svg>';
+  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">';
+  Object.entries(state.sim.factionColors).forEach(([id,c])=>{
+    const f=state.sim.factions.find(x=>x.id===id);
+    if(f) leg+='<span class="tag" style="background:'+c+'">'+escapeHtml(f.name)+'</span>';
+  });
+  leg+='</div>';
+  el.innerHTML=svg+leg;
+}
+function renderTrend(metric){
+  const el=$('trendView'); if(!el) return;
+  const turns=state.sim.turns;
+  if(turns.length<1){ el.innerHTML='<div class="empty">'+t('trendEmpty')+'</div>'; return; }
+  const colors=state.sim.factionColors;
+  const ids=Object.keys(colors);
+  const series={}; ids.forEach(id=>series[id]=[]);
+  turns.forEach(tr=>{
+    const fmap={}; (tr.factions||[]).forEach(f=>fmap[f.id]=f);
+    ids.forEach(id=>{ const f=fmap[id]; series[id].push({year:tr.year, v: f?Number(f[metric])||0:null}); });
+  });
+  const years=turns.map(t=>t.year);
+  const minY=Math.min.apply(null,years), maxY=Math.max.apply(null,years);
+  const W=680,H=320,pad=42;
+  const xOf=y=> pad + (maxY>minY? (y-minY)/(maxY-minY)*(W-2*pad):0);
+  const yOf=v=> H-pad - (v/100)*(H-2*pad);
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%">';
+  svg+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#fff"/>';
+  for(let g=0;g<=100;g+=20){ svg+='<line x1="'+pad+'" y1="'+yOf(g)+'" x2="'+(W-pad)+'" y2="'+yOf(g)+'" stroke="#eef2f7"/><text x="6" y="'+(yOf(g)+3)+'" font-size="9" fill="#667085">'+g+'</text>'; }
+  years.forEach(y=> svg+='<text x="'+xOf(y)+'" y="'+(H-16)+'" font-size="9" fill="#667085" text-anchor="middle">'+y+'</text>');
+  ids.forEach(id=>{
+    const pts=series[id].filter(p=>p.v!=null).map(p=>xOf(p.year)+','+yOf(p.v)).join(' ');
+    if(pts) svg+='<polyline points="'+pts+'" fill="none" stroke="'+colors[id]+'" stroke-width="2"/>';
+  });
+  svg+='</svg>';
+  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">';
+  ids.forEach(id=>{ const f=state.sim.factions.find(x=>x.id===id); if(f) leg+='<span class="tag" style="background:'+colors[id]+'">'+escapeHtml(f.name)+'</span>'; });
+  leg+='</div>';
+  el.innerHTML=svg+leg;
+}
+function renderRaw(){ $('rawView').textContent=JSON.stringify({scenario:state.scenario,sim:state.sim,branches:state.branches.map(b=>({seed:b.seed,turns:b.sim.turns}))},null,2); }
+
+/* ---------- 导入导出保存 ---------- */
+function saveScenario(){ saveApi(); readScenario(); localStorage.setItem('ahs_scenario',JSON.stringify(state.scenario)); toast(t('saved')); }
+function exportJson(){
+  const blob=new Blob([JSON.stringify({scenario:state.scenario,sim:state.sim,branches:state.branches.map(b=>({seed:b.seed,sim:b.sim}))},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='alt-history-'+Date.now()+'.json'; a.click();
+}
+function importJson(){ $('fileInput').click(); }
+$('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{
+    try{ const o=JSON.parse(r.result);
+      if(o.scenario){ Object.assign(state.scenario,o.scenario); fillScenarioForm(); }
+      if(o.sim){ state.sim=o.sim; state.sim.factionColors=state.sim.factionColors||{}; }
+      if(o.branches){ state.branches=o.branches.map(b=>({seed:b.seed,sim:b.sim})); renderBranches(); }
+      refreshViews(); toast(t('imported')); }catch(err){ toast('JSON 错误'); }
+  }; r.readAsText(f); e.target.value='';
+});
+function fillScenarioForm(){
+  $('scnTitle').value=state.scenario.title||''; $('startYear').value=state.scenario.start;
+  $('endYear').value=state.scenario.end; $('stepYears').value=state.scenario.step;
+  $('baseContext').value=state.scenario.base||''; renderNodes();
+}
+
+/* ---------- 示例预设 ---------- */
+function loadPreset(){
+  state.scenario={
+    title:'如果火药没有传入欧洲',
+    start:1200, end:1700, step:50,
+    base:'真实历史：1200 年蒙古西征把火药技术带向西方，欧亚大陆由多个帝国割据。本推演假设：火药配方在东方被严格保密，未曾西传；欧洲仍停留于冷兵器与中世纪战术。',
+    nodes:[
+      {year:1300,name:'蒙古内战',desc:'蒙古帝国分裂为四大汗国，丝绸之路贸易重心东移，欧洲失去东方技术输入窗口。'},
+      {year:1450,name:'古腾堡受阻',desc:'缺乏火药带来的金属冶炼需求，活字印刷与采矿机械进步缓慢，知识传播受限。'},
+      {year:1600,name:'海上均势',desc:'没有火药，欧洲列强的远洋舰队仍以桨帆与接舷战为主，殖民扩张速度大幅下降。'}
+    ]
+  };
+  fillScenarioForm(); toast('已载入示例：如果火药没有传入欧洲');
+}
+
+/* ---------- 标签切换 ---------- */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    tab.classList.add('active'); $('view-'+tab.dataset.view).classList.add('active');
+    if(tab.dataset.view==='raw') renderRaw();
+    if(tab.dataset.view==='map') renderMap();
+    if(tab.dataset.view==='trend') renderTrend($('trendSel').value);
+    if(tab.dataset.view==='branch') renderBranches();
+  };
+});
+$('lang').addEventListener('change',e=>{ LANG=e.target.value; localStorage.setItem('ahs_lang',LANG); applyLang(); });
+
+/* ---------- 启动 ---------- */
+(function init(){
+  loadApi();
+  try{ const s=JSON.parse(localStorage.getItem('ahs_scenario')||'null'); if(s) Object.assign(state.scenario,s); }catch(e){}
+  $('lang').value=LANG; applyLang(); fillScenarioForm();
+})();
+</script>
+</body>
+</html>
