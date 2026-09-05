@@ -77,6 +77,27 @@
   .checkrow{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
   .checkrow label{display:flex;gap:6px;align-items:center;margin:0;color:var(--ink);font-size:13px;font-weight:600}
   .checkrow input{width:auto}
+  /* --- 地图：年份滑块 / 地区沿革 --- */
+  .map-hint{font-size:12px;color:var(--muted);margin:2px 0 8px}
+  .yearbar{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+  .yearbar input[type=range]{flex:1;accent-color:var(--brand)}
+  .yearbar strong{min-width:56px;text-align:right;color:var(--brand)}
+  .histbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:10px;background:#fbfcfe}
+  .strip{display:flex;gap:3px;flex-wrap:wrap;margin:10px 0 6px}
+  .strip .seg{min-width:54px;border-radius:6px;padding:4px 6px;font-size:11px;color:#fff;text-align:center;font-weight:700}
+  .strip .seg.chg{box-shadow:0 0 0 2px #e5484d}
+  .hist-tb th,.hist-tb td{padding:5px 8px}
+  .tagchip{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#fdecec;color:#e5484d;border:1px solid #f5c2c0;white-space:nowrap}
+  /* --- 分支对比：分歧度高亮 --- */
+  .peakbox{background:#fff5ec;border:1px solid #f3d3b5;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13px}
+  tr.peakrow>td{background:#fff7ed}
+  tr.peakrow>td:first-child{box-shadow:inset 3px 0 0 var(--warn)}
+  tr.onsetrow>td{background:#fffbeb}
+  tr.onsetrow>td:first-child{box-shadow:inset 3px 0 0 #d4a017}
+  .badge.alt{background:#eef2ff;color:var(--brand);border-color:#c7d7fe}
+  .divbar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;min-width:52px;margin:3px 0 2px}
+  .divbar>i{display:block;height:100%;background:var(--warn)}
 </style>
 </head>
 <body>
@@ -267,6 +288,11 @@ const I18N = {
     lRand:"随机事件表（低概率事件）", lAdj:"地缘相邻 + 地图", lBranchN:"分支数 (2-4)", branchHint:"对同一方案多次推演（不同随机种子），并排比较走向分歧。",
     trendMetric:"指标", mapEmpty:"推演开始后显示势力地图", trendEmpty:"推演后显示数值趋势", branchEmpty:"点击「运行分支对比」对同一方案多次推演并并排比较走向。",
     branchFinal:"各分支终局势力对比 (科技/军力/稳定)",
+    mapYear:"地图年份", mapHint:"点击地图上的任一地区，查看该地区历年的控制势力变化；拖动滑块可查看不同年份的地图。",
+    mapHist:"控制沿革", mapIndep:"独立 / 无主", mapNone:"无数据", mapChange:"易主", mapHold:"维持", mapClear:"清除选择",
+    mapNoMap:"该回合模型未输出 map 字段。请勾选「地缘相邻 + 地图」后重新推演。", mapLegend:"图例",
+    branchPeak:"分歧最大", branchScore:"分歧度", branchNoDiv:"各分支数据不足，无法计算分歧度。", branchDivCol:"分歧度",
+    branchWhyNum:"势力数值差异", branchWhyMap:"领土控制差异", branchWhyTxt:"综述走向差异", mapFollow:"跟随最新", branchOnset:"分歧起点",
     sysRole:"你是一位严谨的架空历史推演引擎。任务：基于用户给出的初始世界设定与若干「历史节点」（分歧点），分阶段推演一段尽量符合历史逻辑、经济规律、地缘政治与科技演化的架空历史。\n要求：\n1) 连续性：后续事件必须承接前文，人物、国家、数值变化连贯可信，不突然跳跃。\n2) 多维仿真：每回合覆盖 政治 / 经济 / 军事 / 科技 / 文化 / 外交 / 社会 等维度关键事件。\n3) 数值真实：势力数值中 稳定/军力/科技 在 0-100；GDP 用合理量级（如 亿）；人口用合理数字；变化幅度合理。\n4) 历史节点：当当前年份 ≥ 某节点年份时，必须触发该节点描述的事件，并推演连锁反应。\n5) 只输出 JSON，不要任何解释性文字。用语言：{lang}。\n返回结构：\n{\"year\":<int>,\"summary\":\"<本阶段综述，{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<触发的节点事件>\"]}",
     extraRand:"【随机事件表】在推演中适度引入低概率但符合当前时代与科技水平的随机事件（如瘟疫、大饥荒、地震/火山爆发、关键发明、君主暴毙、边疆叛乱、贸易路线改道）。出现频率适中，不要每回合都发生；事件须合理影响相关势力数值与后续走向，不得凭空推翻已确立的大国格局。",
     extraAdj:"【地缘相邻效应】地区相邻关系（示意）：na-sa；we-ee,we-naf,we-me；ee-me,ee-ca；naf-me,naf-saf；me-ca,me-sa2；ca-ea,ca-sa2；sa2-sea；ea-sea；sea-oc。一个地区的战争、瘟疫、贸易冲击、技术扩散会沿相邻关系向外蔓延。每回合必须额外输出 \"map\" 字段，列出全部 12 个地区各自当前由哪个势力控制（用势力 id；无主或独立填 \"independent\"）。地区代码：na(北美),sa(南美),we(西欧),ee(东欧),naf(北非),saf(撒哈拉以南非洲),me(中东),ca(中亚),sa2(南亚/印度),ea(东亚),sea(东南亚),oc(大洋洲)。"
@@ -294,6 +320,11 @@ const I18N = {
     lRand:"Random event table", lAdj:"Adjacency + Map", lBranchN:"Branches (2-4)", branchHint:"Run the same scenario several times (different seeds) and compare divergences side by side.",
     trendMetric:"Metric", mapEmpty:"Map appears after simulation", trendEmpty:"Trend appears after simulation", branchEmpty:"Click 'Run branches' to simulate the same scenario multiple times and compare.",
     branchFinal:"Final factions per branch (tech/mil/stab)",
+    mapYear:"Map year", mapHint:"Click any region on the map to see how its controller changed over the years; drag the slider to view other years.",
+    mapHist:"Control history", mapIndep:"Independent", mapNone:"No data", mapChange:"Changed hands", mapHold:"Held", mapClear:"Clear",
+    mapNoMap:"The model returned no 'map' field for this turn. Enable 'Adjacency + Map' and re-run.", mapLegend:"Legend",
+    branchPeak:"Most divergent", branchScore:"Divergence", branchNoDiv:"Not enough branch data to compute divergence.", branchDivCol:"Divergence",
+    branchWhyNum:"stats gap", branchWhyMap:"territory gap", branchWhyTxt:"summary gap", mapFollow:"Follow latest", branchOnset:"Divergence onset",
     sysRole:"You are a rigorous alternate-history simulation engine. Task: given the user's initial world setting and several 'historical nodes' (divergence points), advance a phased alternate history that respects historical logic, economics, geopolitics and tech evolution.\nRules:\n1) Continuity: later events must follow earlier ones; characters, nations and numbers change coherently, no sudden jumps.\n2) Multi-domain: each turn cover Politics/Economy/Military/Tech/Culture/Diplomacy/Society.\n3) Realistic numbers: stability/military/tech in 0-100; GDP in sensible scale; population sensible; changes moderate.\n4) Nodes: when current year >= a node's year, you MUST trigger that node's event and its chain effects.\n5) Output JSON only, no prose. Language: {lang}.\nSchema:\n{\"year\":<int>,\"summary\":\"<phase summary,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<triggered node event>\"]}",
     extraRand:"【Random event table】Sparingly inject low-probability but era/tech-appropriate random events (plague, famine, earthquake/volcano, key invention, monarch's death, border revolt, trade-route shift). Moderate frequency—not every turn. Events must plausibly affect factions' numbers and later turns, without arbitrarily overturning established great powers.",
     extraAdj:"【Geopolitical adjacency】Region adjacency (schematic): na-sa; we-ee,we-naf,we-me; ee-me,ee-ca; naf-me,naf-saf; me-ca,me-sa2; ca-ea,ca-sa2; sa2-sea; ea-sea; sea-oc. Wars, plagues, trade shocks and tech diffusion in one region spill to neighbors. Each turn MUST also output a \"map\" field listing all 12 regions and which faction controls each (use faction id; \"independent\" if unclaimed). Region codes: na(N.America),sa(S.America),we(W.Europe),ee(E.Europe),naf(N.Africa),saf(Sub-Saharan),me(Mid.East),ca(C.Asia),sa2(S.Asia/India),ea(E.Asia),sea(SE.Asia),oc(Oceania)."
@@ -321,6 +352,11 @@ const I18N = {
     lRand:"ランダムイベント表", lAdj:"隣接効果＋地図", lBranchN:"分岐数(2-4)", branchHint:"同じシナリオを複数回（異シード）実行し、分岐を比較。",
     trendMetric:"指標", mapEmpty:"地図は実行後に表示", trendEmpty:"傾向は実行後に表示", branchEmpty:"「分岐実行」で同じシナリオを複数回実行して比較。",
     branchFinal:"各分岐の終局勢力 (技/軍/安)",
+    mapYear:"地図の年", mapHint:"地図の地域をクリックすると、その地域の支配勢力の変遷を表示します。スライダーで年を切り替えられます。",
+    mapHist:"支配の変遷", mapIndep:"独立 / 無主", mapNone:"データなし", mapChange:"支配者交代", mapHold:"維持", mapClear:"選択解除",
+    mapNoMap:"このターンに map フィールドがありません。「隣接効果＋地図」をONにして再実行してください。", mapLegend:"凡例",
+    branchPeak:"最大分岐", branchScore:"分岐度", branchNoDiv:"分岐データが不足しており分岐度を計算できません。", branchDivCol:"分岐度",
+    branchWhyNum:"勢力数値の差", branchWhyMap:"領域支配の差", branchWhyTxt:"要約の差", mapFollow:"最新に追従", branchOnset:"分岐の起点",
     sysRole:"あなたは厳密なIF歴史シミュレーションエンジンです。ユーザーの初期世界設定と複数の「歴史ノード」（分岐点）に基づき、歴史の論理・経済・地政学・技術進化に沿った段階的IF歴史を推算します。\n規則：\n1) 連続性：後の事件は前の事件を引き継ぐ。人物・国家・数値は連続的に変化し、急跳びしない。\n2) 多分野：各ターンは政治/経済/軍事/技術/文化/外交/社会を網羅。\n3) 現実的数値：安定/軍事/技術は0-100；GDPは妥当な規模；人口は妥当；変化は穏やか。\n4) ノード：現在年≥ノード年のとき、その事件を必ず発生させ連鎖を推算。\n5) プローズなしでJSONのみ出力。言語：{lang}。\n構造：\n{\"year\":<int>,\"summary\":\"<段階要約,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<発生したノード事件>\"]}",
     extraRand:"【ランダムイベント表】時代と技術水準に合った低確率の出来事（疫病、大飢饉、地震/火山、重要発明、君主の死、辺境反乱、交易路変更）を適度に挿入。頻度は穏やか（毎ターンではない）。出来事は勢力の数値と後の展開に妥当に影響させ、確立された大国構造を勝手に覆さない。",
     extraAdj:"【地政学隣接】地域の隣接（概略）：na-sa；we-ee,we-naf,we-me；ee-me,ee-ca；naf-me,naf-saf；me-ca,me-sa2；ca-ea,ca-sa2；sa2-sea；ea-sea；sea-oc。ある地域の戦争・疫病・交易ショック・技術拡散は隣接へ波及する。各ターンは必ず \"map\" フィールドを出力し、12地域それぞれをどの勢力が支配しているか（勢力id、無主は \"independent\"）を列挙。地域コード：na(北米),sa(南米),we(西欧),ee(東欧),naf(北アフリカ),saf(サハラ以南),me(中東),ca(中央アジア),sa2(南アジア),ea(東アジア),sea(東南アジア),oc(オセアニア)。"
@@ -348,6 +384,11 @@ const I18N = {
     lRand:"Tabla de eventos aleatorios", lAdj:"Adyacencia + Mapa", lBranchN:"Ramas (2-4)", branchHint:"Ejecuta el mismo escenario varias veces (semillas distintas) y compara divergencias.",
     trendMetric:"Métrica", mapEmpty:"El mapa aparece tras simular", trendEmpty:"La tendencia aparece tras simular", branchEmpty:"Pulsa 'Ejecutar ramas' para simular varias veces y comparar.",
     branchFinal:"Faccciones finales por rama (tec/mil/estab)",
+    mapYear:"Año del mapa", mapHint:"Haz clic en una región del mapa para ver cómo cambió su controlador; arrastra el control para ver otros años.",
+    mapHist:"Historial de control", mapIndep:"Independiente", mapNone:"Sin datos", mapChange:"Cambió de manos", mapHold:"Se mantiene", mapClear:"Limpiar",
+    mapNoMap:"El modelo no devolvió el campo 'map' en este turno. Activa 'Adyacencia + Mapa' y vuelve a ejecutar.", mapLegend:"Leyenda",
+    branchPeak:"Más divergente", branchScore:"Divergencia", branchNoDiv:"Datos insuficientes para calcular la divergencia.", branchDivCol:"Divergencia",
+    branchWhyNum:"diferencia de estadísticas", branchWhyMap:"diferencia territorial", branchWhyTxt:"diferencia de resúmenes", mapFollow:"Seguir la última", branchOnset:"Inicio de divergencia",
     sysRole:"Eres un motor riguroso de historia alternativa. Dado el mundo inicial y varios 'nodos históricos' (puntos de divergencia), avanza una historia por fases que respete la lógica histórica, economía, geopolítica y evolución tecnológica.\nReglas:\n1) Continuidad: los eventos posteriores siguen a los anteriores; personajes, naciones y números cambian coherentemente, sin saltos.\n2) Multi-dominio: cada turno cubre Política/Economía/Militar/Tecnología/Cultura/Diplomacia/Sociedad.\n3) Números realistas: estabilidad/militar/tecnología en 0-100; PIB en escala sensata; población sensata; cambios moderados.\n4) Nodos: cuando el año actual >= año del nodo, DEBES disparar ese evento y sus efectos en cadena.\n5) Solo JSON, sin prosa. Idioma: {lang}.\nEsquema:\n{\"year\":<int>,\"summary\":\"<resumen del tramo,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<evento de nodo disparado>\"]}",
     extraRand:"【Tabla de eventos aleatorios】Inserta con moderación eventos de baja probabilidad pero acordes a la época y tecnología (plaga, hambruna, terremoto/volcán, invento clave, muerte del monarca, revuelta fronteriza, cambio de ruta comercial). Frecuencia moderada, no cada turno. Los eventos deben afectar plausiblemente los números de las facciones y los turnos siguientes, sin derrocar arbitrariamente a las grandes potencias.",
     extraAdj:"【Adyacencia geopolítica】Adyacencia (esquemática): na-sa; we-ee,we-naf,we-me; ee-me,ee-ca; naf-me,naf-saf; me-ca,me-sa2; ca-ea,ca-sa2; sa2-sea; ea-sea; sea-oc. Guerras, plagas, choques comerciales y difusión tecnológica en una región se propagan a vecinas. Cada turno DEBE incluir \"map\" con las 12 regiones y qué facción controla cada una (id de facción; \"independent\" si nadie). Códigos: na(América N),sa(América S),we(Europa O),ee(Europa E),naf(Áfr.Norte),saf(Áfr.Subsah.),me(Medio Or.),ca(Asia Cent.),sa2(S.Asia),ea(Asia E),sea(SE.Asia),oc(Oceanía)."
@@ -375,6 +416,11 @@ const I18N = {
     lRand:"Table d'événements aléatoires", lAdj:"Adyacence + Carte", lBranchN:"Branches (2-4)", branchHint:"Exécute plusieurs fois le même scénario (graines différentes) et compare les divergences.",
     trendMetric:"Métrique", mapEmpty:"La carte apparaît après simulation", trendEmpty:"La tendance apparaît après simulation", branchEmpty:"Clique 'Exécuter branches' pour simuler plusieurs fois et comparer.",
     branchFinal:"Factions finales par branche (tech/mil/stab)",
+    mapYear:"Année de la carte", mapHint:"Clique une région de la carte pour voir l'évolution de son contrôle ; glisse le curseur pour changer d'année.",
+    mapHist:"Historique de contrôle", mapIndep:"Indépendant", mapNone:"Aucune donnée", mapChange:"Change de mains", mapHold:"Maintien", mapClear:"Effacer",
+    mapNoMap:"Le modèle n'a pas renvoyé de champ 'map' pour ce tour. Active 'Adyacence + Carte' et relance.", mapLegend:"Légende",
+    branchPeak:"Plus divergente", branchScore:"Divergence", branchNoDiv:"Données insuffisantes pour calculer la divergence.", branchDivCol:"Divergence",
+    branchWhyNum:"écart de statistiques", branchWhyMap:"écart territorial", branchWhyTxt:"écart de résumés", mapFollow:"Suivre la dernière", branchOnset:"Début de divergence",
     sysRole:"Tu es un moteur rigoureux d'histoire alternative. À partir du monde initial et de plusieurs 'nœuds historiques' (points de divergence), avance une histoire par phases respectant la logique historique, l'économie, la géopolitique et l'évolution technologique.\nRègles :\n1) Continuité : les événements suivants découlent des précédents ; personnages, nations et chiffres évoluent cohérentment, sans sauts.\n2) Multi-domaines : chaque tour couvre Politique/Économie/Militaire/Tech/Culture/Diplomatie/Société.\n3) Chiffres réalistes : stabilité/militaire/tech en 0-100 ; PIB à l'échelle ; population sensée ; changements modérés.\n4) Nœuds : quand l'année courante >= année du nœud, tu DOIS déclencher cet événement et ses effets en chaîne.\n5) JSON uniquement, sans prose. Langue : {lang}.\nSchéma :\n{\"year\":<int>,\"summary\":\"<résumé de la phase,{lang}>\",\"events\":[{\"domain\":\"politics|economy|military|tech|culture|diplomacy|society\",\"title\":\"\",\"description\":\"\",\"location\":\"\",\"severity\":1-5}],\"factions\":[{\"id\":\"\",\"name\":\"\",\"type\":\"\",\"region\":\"\",\"ideology\":\"\",\"leader\":\"\",\"gdp\":\"\",\"stability\":0-100,\"military\":0-100,\"tech\":0-100,\"population\":\"\",\"note\":\"\"}],\"divergences\":[\"<événement de nœud déclenché>\"]}",
     extraRand:"【Table d'événements aléatoires】Injecte avec modération des événements de faible probabilité mais cohérents avec l'époque et la tech (peste, famine, séisme/volcan, invention clé, mort du souverain, révolte frontalière, déroutage commercial). Fréquence modérée, pas à chaque tour. Ces événements doivent affecter raisonnablement les chiffres des factions et les tours suivants, sans renverser arbitrairement les grandes puissances.",
     extraAdj:"【Adyacence géopolitique】Adyacence (schématique) : na-sa ; we-ee,we-naf,we-me ; ee-me,ee-ca ; naf-me,naf-saf ; me-ca,me-sa2 ; ca-ea,ca-sa2 ; sa2-sea ; ea-sea ; sea-oc. Guerres, pestes, chocs commerciaux et diffusion tech d'une région se propagent aux voisines. Chaque tour DOIT ajouter \"map\" listant les 12 régions et la faction qui contrôle chacune (id de faction ; \"independent\" si personne). Codes : na(Am.Nord),sa(Am.Sud),we(Eur.Ouest),ee(Eur.Est),naf(Afr.Nord),saf(Afr.Subsah.),me(Moyen-Or.),ca(Asie Cent.),sa2(S.Asie),ea(Asie E),sea(SE.Asie),oc(Océanie)."
@@ -391,6 +437,7 @@ let state = {
   scenario:{title:"", start:100, end:1500, step:50, base:"", nodes:[]},
   sim:{turns:[], factions:[], year:null, idx:0, running:false, paused:false, factionColors:{}},
   branches:[],
+  map:{year:null, region:null},
   log:[]
 };
 let logLines = [];
@@ -423,7 +470,7 @@ function applyLang(){
   for(const id in map){ const el=$(id); if(el) el.textContent=t(map[id]); }
   $('optRand').checked = state.opt.rand; $('optAdj').checked = state.opt.adj;
   $('lang').value = LANG;
-  renderNodes(); refreshViews();
+  renderNodes(); refreshViews(); renderMap(true); renderBranches();
 }
 
 /* ---------- API 持久化 ---------- */
@@ -525,6 +572,7 @@ function pauseSim(){ if(state.sim.running){ state.sim.paused=true; setRunning(fa
 function resetSim(){
   state.sim={turns:[],factions:[],year:null,idx:0,running:false,paused:false,factionColors:{}};
   state.branches=[];
+  state.map={year:null,region:null};
   renderNodes(); refreshViews(); $('rawView').textContent='{}';
   $('progBar').style.width='0%'; $('progText').textContent=t('progText');
   $('branchBar').style.width='0%'; $('branchText').textContent='';
@@ -604,18 +652,100 @@ async function runBranches(){
   $('btnBranch').disabled=false; $('branchText').textContent='完成 '+n+' 个分支';
   renderBranches();
 }
+/* ---------- 分歧度计算（数值 45% + 领土 30% + 综述文本 25%） ---------- */
+function textSim(a,b){
+  const grams=s=>{
+    const str=String(s==null?'':s).toLowerCase().replace(/\s+/g,'');
+    const arr=[]; if(!str.length) return arr;
+    for(let i=0;i<str.length-1;i++) arr.push(str.slice(i,i+2));
+    if(str.length===1) arr.push(str);
+    return arr;
+  };
+  const A=new Set(grams(a)), B=new Set(grams(b));
+  if(!A.size||!B.size) return 0;
+  let inter=0; A.forEach(x=>{ if(B.has(x)) inter++; });
+  return inter/(A.size+B.size-inter);
+}
+function branchDivergence(){
+  const bs=state.branches||[];
+  const steps=totalSteps();
+  const out=[];
+  for(let i=0;i<steps;i++){
+    const year=state.scenario.start+(i+1)*state.scenario.step;
+    const turns=[]; bs.forEach(b=>{ if(b.sim.turns[i]) turns.push(b.sim.turns[i]); });
+    if(turns.length<2){ out.push({i:i,year:year,score:0,num:0,map:0,txt:0,mapDiff:0,ok:false}); continue; }
+    /* 势力数值差异：各势力 tech/military/stability 的极差，60 分视为满分 */
+    const ids={}; turns.forEach(tr=>(tr.factions||[]).forEach(f=>{ if(f&&f.id) ids[f.id]=1; }));
+    let numSum=0,numCnt=0;
+    Object.keys(ids).forEach(id=>{
+      ['tech','military','stability'].forEach(m=>{
+        const vals=[];
+        turns.forEach(tr=>{ const f=(tr.factions||[]).find(x=>x.id===id); const v=f?Number(f[m]):NaN; if(!isNaN(v)) vals.push(v); });
+        if(vals.length<2) return;
+        numSum+=Math.min(1,(Math.max.apply(null,vals)-Math.min.apply(null,vals))/60); numCnt++;
+      });
+    });
+    const num=numCnt?numSum/numCnt:0;
+    /* 领土控制差异：12 地区中控制者不一致的比例 */
+    let mapDiff=0,mapCnt=0;
+    REGIONS.forEach(r=>{
+      const cs=[]; turns.forEach(tr=>{ const m=(tr.map||[]).find(x=>x.region===r.id); if(m&&m.faction) cs.push(m.faction); });
+      if(cs.length<2) return;
+      mapCnt++; if(new Set(cs).size>1) mapDiff++;
+    });
+    const map=mapCnt?mapDiff/mapCnt:0;
+    /* 综述文本差异：二元组 Jaccard 相似度的补 */
+    const sums=turns.map(tr=>tr.summary||'');
+    let txt=0,tc=0;
+    for(let a=0;a<sums.length;a++) for(let b=a+1;b<sums.length;b++){ txt+=1-textSim(sums[a],sums[b]); tc++; }
+    txt=tc?txt/tc:0;
+    out.push({i:i,year:year,score:0.45*num+0.30*map+0.25*txt,num:num,map:map,txt:txt,mapDiff:mapDiff,ok:true});
+  }
+  return out;
+}
 function renderBranches(){
   const el=$('branchView'); if(!el) return;
   if(!state.branches||!state.branches.length){ el.innerHTML='<div class="empty">'+t('branchEmpty')+'</div>'; return; }
   const steps=totalSteps();
-  let html='<div class="muted" style="margin-bottom:8px">每一行是一个推演年份，并排展示各分支的综述，便于比较走向分歧。</div>';
-  html+='<table><thead><tr><th>年份</th>'+state.branches.map((br,i)=>'<th>分支 '+(i+1)+'<br><span class="muted">seed '+br.seed+'</span></th>').join('')+'</tr></thead><tbody>';
+  const div=branchDivergence();
+  /* 峰值年：累积分歧最大；起点年：相较上一年增幅最大的转折年 */
+  let peak=-1, onset=-1, onsetDelta=0;
+  div.forEach(d=>{ if(!d.ok) return; if(peak<0||d.score>div[peak].score) peak=d.i; });
+  for(let i=1;i<div.length;i++){
+    if(!div[i].ok||!div[i-1].ok) continue;
+    const dl=div[i].score-div[i-1].score;
+    if(dl>onsetDelta){ onsetDelta=dl; onset=i; }
+  }
+  const hasPeak=peak>=0&&div[peak].score>0.001;
+  const hasOnset=onset>=0&&onsetDelta>0.02&&onset!==peak;
+  let html='';
+  if(hasPeak){
+    const p=div[peak];
+    html+='<div class="peakbox"><div><strong>⚡ '+t('branchPeak')+'：'+p.year+'</strong>'+
+      '<span class="muted"> · '+t('branchScore')+' '+p.score.toFixed(2)+'</span></div>'+
+      '<div class="muted" style="margin-top:3px">'+t('branchWhyNum')+' '+p.num.toFixed(2)+
+      ' · '+t('branchWhyMap')+' '+p.map.toFixed(2)+' ('+p.mapDiff+'/12)'+
+      ' · '+t('branchWhyTxt')+' '+p.txt.toFixed(2)+'</div>'+
+      (hasOnset?'<div class="muted" style="margin-top:3px">↯ '+t('branchOnset')+'：'+div[onset].year+
+        '（'+t('branchScore')+' +'+onsetDelta.toFixed(2)+'）</div>':'')+'</div>';
+  }else{
+    html+='<div class="muted" style="margin-bottom:8px">'+t('branchNoDiv')+'</div>';
+  }
+  html+='<div class="muted" style="margin-bottom:8px">每一行是一个推演年份，并排展示各分支的综述；「'+t('branchDivCol')+'」列自动计算各分支在该年的差异程度，最高者已高亮。</div>';
+  html+='<table><thead><tr><th>年份</th><th>'+t('branchDivCol')+'</th>'+state.branches.map((br,i)=>'<th>分支 '+(i+1)+'<br><span class="muted">seed '+br.seed+'</span></th>').join('')+'</tr></thead><tbody>';
   for(let i=0;i<steps;i++){
     const yr=state.scenario.start+(i+1)*state.scenario.step;
-    html+='<tr><td><strong>'+yr+'</strong></td>'+state.branches.map(br=>{
+    const d=div[i]||{score:0,ok:false};
+    const cell='<div class="divbar"><i style="width:'+Math.round(Math.min(1,d.score)*100)+'%"></i></div><span class="muted">'+(d.ok?d.score.toFixed(2):'—')+'</span>';
+    const isPeak=hasPeak&&peak===i;
+    const isOnset=hasOnset&&onset===i;
+    const cls=isPeak?'peakrow':(isOnset?'onsetrow':'');
+    const marks=(isPeak?'<br><span class="badge">⚡ '+t('branchPeak')+'</span>':'')+
+      (isOnset?'<br><span class="badge alt">↯ '+t('branchOnset')+'</span>':'');
+    html+='<tr class="'+cls+'"><td><strong>'+yr+'</strong>'+marks+'</td><td>'+cell+'</td>'+state.branches.map(br=>{
       const tr=br.sim.turns[i]; if(!tr) return '<td class="muted">—</td>';
-      const div=(tr.divergences||[]).length?'<div class="muted" style="margin-top:4px">⚡ '+escapeHtml((tr.divergences||[]).join('；'))+'</div>':'';
-      return '<td style="vertical-align:top"><div>'+escapeHtml(tr.summary||'')+'</div>'+div+'</td>';
+      const dv=(tr.divergences||[]).length?'<div class="muted" style="margin-top:4px">⚡ '+escapeHtml((tr.divergences||[]).join('；'))+'</div>':'';
+      return '<td style="vertical-align:top"><div>'+escapeHtml(tr.summary||'')+'</div>'+dv+'</td>';
     }).join('')+'</tr>';
   }
   html+='</tbody></table>';
@@ -668,35 +798,115 @@ function renderFactions(){
   el.innerHTML='<table><thead><tr><th>'+t('fName')+'</th><th>'+t('fIdeo')+'</th><th>'+t('fLeader')+'</th>'+
     '<th>'+t('fGdp')+'</th><th>'+t('fStab')+'</th><th>'+t('fMil')+'</th><th>'+t('fTech')+'</th><th>'+t('fPop')+'</th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
-function renderMap(){
+/* ---------- 地图：年份滑块 + 地区历年控制沿革 ---------- */
+function factionColor(sim,fid){
+  if(!fid||fid==='independent'||fid==='none') return '#cfd8e3';
+  return (sim.factionColors&&sim.factionColors[fid])||'#7c5cff';
+}
+function factionName(sim,fid){
+  if(!fid) return t('mapNone');
+  if(fid==='independent'||fid==='none') return t('mapIndep');
+  let f=(sim.factions||[]).find(x=>x.id===fid);
+  if(!f){ // 回退：从任意回合的 factions 里反查，避免导入数据后只显示 id
+    for(let i=(sim.turns||[]).length-1;i>=0;i--){
+      const g=((sim.turns[i].factions)||[]).find(x=>x.id===fid);
+      if(g){ f=g; break; }
+    }
+  }
+  return f? (f.name||fid) : fid;
+}
+function renderMap(force){
   const el=$('mapView'); if(!el) return;
   const turns=state.sim.turns;
-  if(!turns.length){ el.innerHTML='<div class="empty">'+t('mapEmpty')+'</div>'; return; }
-  const last=turns[turns.length-1];
-  const ctrl={}; (last.map||[]).forEach(m=> ctrl[m.region]=m.faction);
+  if(!turns.length){ el.innerHTML='<div class="empty">'+t('mapEmpty')+'</div>'; state.map={year:null,region:null}; return; }
+  if(state.map.follow!==false) state.map.year=turns.length-1;
+  if(state.map.year==null||state.map.year>turns.length-1) state.map.year=turns.length-1;
+  if(force||!el.querySelector('#mapSvg')){
+    el.innerHTML='<div class="map-hint">'+t('mapHint')+'</div>'+
+      '<div class="yearbar"><span class="muted">'+t('mapYear')+'</span>'+
+      '<input type="range" id="mapYearRange" min="0" max="'+(turns.length-1)+'" value="'+state.map.year+'" oninput="setMapYear(this.value)">'+
+      '<strong id="mapYearLabel">'+turns[state.map.year].year+'</strong>'+
+      '<button class="btn sm ghost" id="mapFollowBtn" onclick="mapFollow()">'+t('mapFollow')+'</button></div>'+
+      '<div id="mapSvg"></div><div id="mapHist"></div>';
+  }else{
+    const r=el.querySelector('#mapYearRange');
+    if(r){ r.max=String(turns.length-1); r.value=String(state.map.year); }
+    const lb=$('mapYearLabel'); if(lb) lb.textContent=turns[state.map.year].year;
+    const fb=$('mapFollowBtn'); if(fb) fb.textContent=t('mapFollow');
+  }
+  renderMapSvg(); renderMapHist();
+}
+function mapFollow(){
+  const turns=state.sim.turns; if(!turns.length) return;
+  state.map.follow=true; state.map.year=turns.length-1;
+  const r=$('mapYearRange'); if(r) r.value=String(state.map.year);
+  const lb=$('mapYearLabel'); if(lb) lb.textContent=turns[state.map.year].year;
+  renderMapSvg(); renderMapHist();
+}
+function setMapYear(v){
+  const turns=state.sim.turns; if(!turns.length) return;
+  state.map.follow=false;
+  state.map.year=Math.max(0,parseInt(v)||0);
+  if(state.map.year>turns.length-1) state.map.year=turns.length-1;
+  const lb=$('mapYearLabel'); if(lb) lb.textContent=turns[state.map.year].year;
+  renderMapSvg(); renderMapHist();
+}
+function selectRegion(id){ state.map.region=(state.map.region===id?null:id); renderMapSvg(); renderMapHist(); }
+function clearRegion(){ state.map.region=null; renderMapSvg(); renderMapHist(); }
+function renderMapSvg(){
+  const el=$('mapSvg'); if(!el) return;
+  const turns=state.sim.turns; if(!turns.length){ el.innerHTML=''; return; }
+  const ti=(state.map.year==null)?turns.length-1:state.map.year;
+  const cur=turns[ti];
+  const ctrl={}; (cur.map||[]).forEach(m=>{ if(m) ctrl[m.region]=m.faction; });
+  const hasMap=(cur.map||[]).length>0;
   let svg='<svg viewBox="0 0 680 360" width="100%" style="background:#eaf2fb;border-radius:12px">';
   svg+='<rect x="0" y="0" width="680" height="360" fill="#eaf2fb"/>';
   REGIONS.forEach(r=>{
     const fid=ctrl[r.id];
-    let fill='#cfd8e3', stroke='#9fb3c8', label='';
-    if(fid && fid!=='independent' && fid!=='none'){
-      fill=state.sim.factionColors[fid]||'#7c5cff';
-      const f=state.sim.factions.find(x=>x.id===fid);
-      label=f?f.name:fid;
-    } else if(fid==='independent'){ fill='#e7ecf3'; label='独立'; }
-    svg+='<g><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="8" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.2"/>';
-    svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2-4)+'" text-anchor="middle" font-size="11" fill="#1f2933" font-weight="700">'+((t('regions')[r.id])||r.id)+'</text>';
-    if(label) svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2+12)+'" text-anchor="middle" font-size="10" fill="#1f2933">'+escapeHtml(label)+'</text>';
+    const sel=(state.map.region===r.id);
+    svg+='<g style="cursor:pointer" onclick="selectRegion(\''+r.id+'\')">';
+    svg+='<rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" rx="8" fill="'+factionColor(state.sim,fid)+'" stroke="'+(sel?'#1f2933':'#9fb3c8')+'" stroke-width="'+(sel?3:1.2)+'"/>';
+    svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2-4)+'" text-anchor="middle" font-size="11" fill="#1f2933" font-weight="700" pointer-events="none">'+escapeHtml(t('regions')[r.id]||r.id)+'</text>';
+    svg+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2+12)+'" text-anchor="middle" font-size="10" fill="#334155" pointer-events="none">'+escapeHtml(factionName(state.sim,fid))+'</text>';
     svg+='</g>';
   });
   svg+='</svg>';
-  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">';
-  Object.entries(state.sim.factionColors).forEach(([id,c])=>{
-    const f=state.sim.factions.find(x=>x.id===id);
-    if(f) leg+='<span class="tag" style="background:'+c+'">'+escapeHtml(f.name)+'</span>';
+  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center"><span class="muted">'+t('mapLegend')+':</span>';
+  Object.keys(state.sim.factionColors||{}).forEach(id=>{
+    const f=(state.sim.factions||[]).find(x=>x.id===id);
+    if(f) leg+='<span class="tag" style="background:'+state.sim.factionColors[id]+'">'+escapeHtml(f.name||id)+'</span>';
   });
-  leg+='</div>';
-  el.innerHTML=svg+leg;
+  leg+='<span class="tag" style="background:#cfd8e3;color:#475569">'+t('mapIndep')+'</span></div>';
+  el.innerHTML=svg+leg+(hasMap?'':'<div class="note" style="margin-top:8px">'+t('mapNoMap')+'</div>');
+}
+function renderMapHist(){
+  const el=$('mapHist'); if(!el) return;
+  const rid=state.map.region;
+  if(!rid){ el.innerHTML=''; return; }
+  const hist=state.sim.turns.map((tr,i)=>{
+    const m=(tr.map||[]).find(x=>x.region===rid);
+    return {i:i, year:tr.year, fid: m? m.faction : null};
+  });
+  let html='<div class="histbox"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+    '<strong>📍 '+escapeHtml(t('regions')[rid]||rid)+' · '+t('mapHist')+'</strong>'+
+    '<button class="btn sm ghost" onclick="clearRegion()">'+t('mapClear')+'</button></div>';
+  if(!hist.some(h=>h.fid)){ el.innerHTML=html+'<div class="muted" style="margin-top:8px">'+t('mapNoMap')+'</div></div>'; return; }
+  html+='<div class="strip">';
+  hist.forEach((h,k)=>{
+    const chg=k>0&&h.fid!==hist[k-1].fid;
+    html+='<div class="seg'+(chg?' chg':'')+'" style="background:'+factionColor(state.sim,h.fid)+'" title="'+escapeHtml(factionName(state.sim,h.fid))+'">'+h.year+(chg?' ⇄':'')+'</div>';
+  });
+  html+='</div>';
+  html+='<table class="hist-tb"><thead><tr><th>'+t('mapYear')+'</th><th>'+t('fName')+'</th><th>'+t('mapChange')+' / '+t('mapHold')+'</th></tr></thead><tbody>';
+  hist.forEach((h,k)=>{
+    const chg=k>0&&h.fid!==hist[k-1].fid;
+    const hl=(state.map.year===h.i)?' style="background:#fff7ed"':'';
+    html+='<tr'+hl+'><td><strong>'+h.year+'</strong></td>'+
+      '<td><span class="tagchip" style="background:'+factionColor(state.sim,h.fid)+'"></span>'+escapeHtml(factionName(state.sim,h.fid))+'</td>'+
+      '<td>'+(k===0?'<span class="muted">—</span>':(chg?'<span class="badge">'+t('mapChange')+'</span>':'<span class="muted">'+t('mapHold')+'</span>'))+'</td></tr>';
+  });
+  el.innerHTML=html+'</tbody></table></div>';
 }
 function renderTrend(metric){
   const el=$('trendView'); if(!el) return;
