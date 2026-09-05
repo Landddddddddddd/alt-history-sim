@@ -231,6 +231,7 @@
               <option value="tech" id="oTech">科技</option>
               <option value="stability" id="oStab">稳定</option>
               <option value="military" id="oMil">军力</option>
+              <option value="all" id="oAll">全部叠加</option>
             </select>
           </div>
         </div>
@@ -287,7 +288,7 @@ const I18N = {
     simStart:"开始推演：从 {s} 到 {e}，每步 {p} 年，共 {n} 步。语言：{l}",
     lRand:"随机事件表（低概率事件）", lAdj:"地缘相邻 + 地图", lBranchN:"分支数 (2-4)", branchHint:"对同一方案多次推演（不同随机种子），并排比较走向分歧。",
     trendMetric:"指标", mapEmpty:"推演开始后显示势力地图", trendEmpty:"推演后显示数值趋势", branchEmpty:"点击「运行分支对比」对同一方案多次推演并并排比较走向。",
-    branchFinal:"各分支终局势力对比 (科技/军力/稳定)",
+    branchFinal:"各分支终局势力对比 (科技/军力/稳定)", trendAll:"全部叠加（颜色=势力，线型=指标）", branchCsv:"导出 CSV",
     mapYear:"地图年份", mapHint:"点击地图上的任一地区，查看该地区历年的控制势力变化；拖动滑块可查看不同年份的地图。",
     mapHist:"控制沿革", mapIndep:"独立 / 无主", mapNone:"无数据", mapChange:"易主", mapHold:"维持", mapClear:"清除选择",
     mapNoMap:"该回合模型未输出 map 字段。请勾选「地缘相邻 + 地图」后重新推演。", mapLegend:"图例",
@@ -319,7 +320,7 @@ const I18N = {
     simStart:"Start: from {s} to {e}, step {p} yr, {n} turns. Lang: {l}",
     lRand:"Random event table", lAdj:"Adjacency + Map", lBranchN:"Branches (2-4)", branchHint:"Run the same scenario several times (different seeds) and compare divergences side by side.",
     trendMetric:"Metric", mapEmpty:"Map appears after simulation", trendEmpty:"Trend appears after simulation", branchEmpty:"Click 'Run branches' to simulate the same scenario multiple times and compare.",
-    branchFinal:"Final factions per branch (tech/mil/stab)",
+    branchFinal:"Final factions per branch (tech/mil/stab)", trendAll:"All metrics (color=faction, style=metric)", branchCsv:"Export CSV",
     mapYear:"Map year", mapHint:"Click any region on the map to see how its controller changed over the years; drag the slider to view other years.",
     mapHist:"Control history", mapIndep:"Independent", mapNone:"No data", mapChange:"Changed hands", mapHold:"Held", mapClear:"Clear",
     mapNoMap:"The model returned no 'map' field for this turn. Enable 'Adjacency + Map' and re-run.", mapLegend:"Legend",
@@ -351,7 +352,7 @@ const I18N = {
     simStart:"開始：{s}年→{e}年、ステップ{p}年、計{n}ターン。言語：{l}",
     lRand:"ランダムイベント表", lAdj:"隣接効果＋地図", lBranchN:"分岐数(2-4)", branchHint:"同じシナリオを複数回（異シード）実行し、分岐を比較。",
     trendMetric:"指標", mapEmpty:"地図は実行後に表示", trendEmpty:"傾向は実行後に表示", branchEmpty:"「分岐実行」で同じシナリオを複数回実行して比較。",
-    branchFinal:"各分岐の終局勢力 (技/軍/安)",
+    branchFinal:"各分岐の終局勢力 (技/軍/安)", trendAll:"全指標を重ねる（色＝勢力、線種＝指標）", branchCsv:"CSV 出力",
     mapYear:"地図の年", mapHint:"地図の地域をクリックすると、その地域の支配勢力の変遷を表示します。スライダーで年を切り替えられます。",
     mapHist:"支配の変遷", mapIndep:"独立 / 無主", mapNone:"データなし", mapChange:"支配者交代", mapHold:"維持", mapClear:"選択解除",
     mapNoMap:"このターンに map フィールドがありません。「隣接効果＋地図」をONにして再実行してください。", mapLegend:"凡例",
@@ -383,7 +384,7 @@ const I18N = {
     simStart:"Inicio: {s}→{e}, paso {p} años, {n} turnos. Idioma: {l}",
     lRand:"Tabla de eventos aleatorios", lAdj:"Adyacencia + Mapa", lBranchN:"Ramas (2-4)", branchHint:"Ejecuta el mismo escenario varias veces (semillas distintas) y compara divergencias.",
     trendMetric:"Métrica", mapEmpty:"El mapa aparece tras simular", trendEmpty:"La tendencia aparece tras simular", branchEmpty:"Pulsa 'Ejecutar ramas' para simular varias veces y comparar.",
-    branchFinal:"Faccciones finales por rama (tec/mil/estab)",
+    branchFinal:"Faccciones finales por rama (tec/mil/estab)", trendAll:"Todas las métricas (color=facción, trazo=métrica)", branchCsv:"Exportar CSV",
     mapYear:"Año del mapa", mapHint:"Haz clic en una región del mapa para ver cómo cambió su controlador; arrastra el control para ver otros años.",
     mapHist:"Historial de control", mapIndep:"Independiente", mapNone:"Sin datos", mapChange:"Cambió de manos", mapHold:"Se mantiene", mapClear:"Limpiar",
     mapNoMap:"El modelo no devolvió el campo 'map' en este turno. Activa 'Adyacencia + Mapa' y vuelve a ejecutar.", mapLegend:"Leyenda",
@@ -415,7 +416,7 @@ const I18N = {
     simStart:"Début : {s}→{e}, pas {p} ans, {n} tours. Langue : {l}",
     lRand:"Table d'événements aléatoires", lAdj:"Adyacence + Carte", lBranchN:"Branches (2-4)", branchHint:"Exécute plusieurs fois le même scénario (graines différentes) et compare les divergences.",
     trendMetric:"Métrique", mapEmpty:"La carte apparaît après simulation", trendEmpty:"La tendance apparaît après simulation", branchEmpty:"Clique 'Exécuter branches' pour simuler plusieurs fois et comparer.",
-    branchFinal:"Factions finales par branche (tech/mil/stab)",
+    branchFinal:"Factions finales par branche (tech/mil/stab)", trendAll:"Toutes métriques (couleur=faction, style=métrique)", branchCsv:"Exporter CSV",
     mapYear:"Année de la carte", mapHint:"Clique une région de la carte pour voir l'évolution de son contrôle ; glisse le curseur pour changer d'année.",
     mapHist:"Historique de contrôle", mapIndep:"Indépendant", mapNone:"Aucune donnée", mapChange:"Change de mains", mapHold:"Maintien", mapClear:"Effacer",
     mapNoMap:"Le modèle n'a pas renvoyé de champ 'map' pour ce tour. Active 'Adyacence + Carte' et relance.", mapLegend:"Légende",
@@ -465,7 +466,7 @@ function applyLang(){
     tabFactions:'tabFactions',tabMap:'tabMap',tabTrend:'tabTrend',tabBranch:'tabBranch',tabRaw:'tabRaw',tabLog:'tabLog',
     lRand:'lRand',lAdj:'lAdj',lBranchN:'lBranchN',branchHint:'branchHint',trendMetric:'trendMetric',
     mapEmpty:'mapEmpty',trendEmpty:'trendEmpty',branchEmpty:'branchEmpty',branchFinal:'branchFinal',
-    oTech:'oTech',oStab:'oStab',oMil:'oMil'
+    oTech:'oTech',oStab:'oStab',oMil:'oMil',oAll:'oAll',branchCsvBtn:'branchCsv'
   };
   for(const id in map){ const el=$(id); if(el) el.textContent=t(map[id]); }
   $('optRand').checked = state.opt.rand; $('optAdj').checked = state.opt.adj;
@@ -719,6 +720,7 @@ function renderBranches(){
   const hasPeak=peak>=0&&div[peak].score>0.001;
   const hasOnset=onset>=0&&onsetDelta>0.02&&onset!==peak;
   let html='';
+  html+='<div style="margin-bottom:8px"><button class="btn sm ghost" id="branchCsvBtn" onclick="exportBranchCsv()">'+t('branchCsv')+'</button></div>';
   if(hasPeak){
     const p=div[peak];
     html+='<div class="peakbox"><div><strong>⚡ '+t('branchPeak')+'：'+p.year+'</strong>'+
@@ -914,12 +916,15 @@ function renderTrend(metric){
   if(turns.length<1){ el.innerHTML='<div class="empty">'+t('trendEmpty')+'</div>'; return; }
   const colors=state.sim.factionColors;
   const ids=Object.keys(colors);
-  const series={}; ids.forEach(id=>series[id]=[]);
+  const all=(metric==='all');
+  const metrics=all?['tech','military','stability']:[metric];
+  const DASH={tech:'',military:'7 4',stability:'2 4'}; // 线型区分指标：实线=科技、虚线=军力、点线=稳定
+  const series={}; ids.forEach(id=>{ series[id]={}; metrics.forEach(m=>series[id][m]=[]); });
   turns.forEach(tr=>{
     const fmap={}; (tr.factions||[]).forEach(f=>fmap[f.id]=f);
-    ids.forEach(id=>{ const f=fmap[id]; series[id].push({year:tr.year, v: f?Number(f[metric])||0:null}); });
+    ids.forEach(id=>{ const f=fmap[id]||{}; metrics.forEach(m=>{ series[id][m].push({year:tr.year, v:(f[m]!=null)?Number(f[m]):null}); }); });
   });
-  const years=turns.map(t=>t.year);
+  const years=turns.map(x=>x.year);
   const minY=Math.min.apply(null,years), maxY=Math.max.apply(null,years);
   const W=680,H=320,pad=42;
   const xOf=y=> pad + (maxY>minY? (y-minY)/(maxY-minY)*(W-2*pad):0);
@@ -928,17 +933,59 @@ function renderTrend(metric){
   svg+='<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#fff"/>';
   for(let g=0;g<=100;g+=20){ svg+='<line x1="'+pad+'" y1="'+yOf(g)+'" x2="'+(W-pad)+'" y2="'+yOf(g)+'" stroke="#eef2f7"/><text x="6" y="'+(yOf(g)+3)+'" font-size="9" fill="#667085">'+g+'</text>'; }
   years.forEach(y=> svg+='<text x="'+xOf(y)+'" y="'+(H-16)+'" font-size="9" fill="#667085" text-anchor="middle">'+y+'</text>');
-  ids.forEach(id=>{
-    const pts=series[id].filter(p=>p.v!=null).map(p=>xOf(p.year)+','+yOf(p.v)).join(' ');
-    if(pts) svg+='<polyline points="'+pts+'" fill="none" stroke="'+colors[id]+'" stroke-width="2"/>';
-  });
+  ids.forEach(id=> metrics.forEach(m=>{
+    const pts=series[id][m].filter(p=>p.v!=null).map(p=>xOf(p.year)+','+yOf(p.v)).join(' ');
+    if(pts) svg+='<polyline points="'+pts+'" fill="none" stroke="'+colors[id]+'" stroke-width="2"'+(DASH[m]?' stroke-dasharray="'+DASH[m]+'"':'')+'/>';
+  }));
   svg+='</svg>';
-  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">';
+  let leg='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center">';
   ids.forEach(id=>{ const f=state.sim.factions.find(x=>x.id===id); if(f) leg+='<span class="tag" style="background:'+colors[id]+'">'+escapeHtml(f.name)+'</span>'; });
+  if(all){
+    const ML={tech:'fTech',military:'fMil',stability:'fStab'};
+    leg+='<span class="muted" style="margin-left:10px">'+t('trendAll')+'</span>';
+    ['tech','military','stability'].forEach(m=>{
+      leg+='<span style="display:inline-flex;align-items:center;gap:4px"><svg width="26" height="8"><line x1="0" y1="4" x2="26" y2="4" stroke="#475569" stroke-width="2"'+(DASH[m]?' stroke-dasharray="'+DASH[m]+'"':'')+'/></svg>'+escapeHtml(t(ML[m]))+'</span>';
+    });
+  }
   leg+='</div>';
   el.innerHTML=svg+leg;
 }
 function renderRaw(){ $('rawView').textContent=JSON.stringify({scenario:state.scenario,sim:state.sim,branches:state.branches.map(b=>({seed:b.seed,turns:b.sim.turns}))},null,2); }
+
+/* ---------- 分支对比导出 CSV ---------- */
+function csvEsc(s){ return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'; }
+function exportBranchCsv(){
+  if(!state.branches||!state.branches.length){ toast(t('branchEmpty')); return; }
+  const steps=totalSteps();
+  const div=branchDivergence();
+  const rows=[];
+  const head=[t('mapYear'),'divergence'];
+  state.branches.forEach((b,i)=>head.push('branch'+(i+1)+' (seed '+b.seed+')'));
+  rows.push(head);
+  for(let i=0;i<steps;i++){
+    const yr=state.scenario.start+(i+1)*state.scenario.step;
+    const row=[yr, (div[i]&&div[i].ok)?div[i].score.toFixed(3):''];
+    state.branches.forEach(b=>{ const tr=b.sim.turns[i]; row.push(tr?(tr.summary||''):'' ); });
+    rows.push(row);
+  }
+  const f0=state.branches[0].sim.factions||[];
+  if(f0.length){
+    rows.push([]);
+    rows.push([t('fName')].concat(state.branches.map((b,i)=>'branch'+(i+1)+' '+t('fTech')+'/'+t('fMil')+'/'+t('fStab'))));
+    f0.forEach(f=>{
+      const row=[f.name||f.id];
+      state.branches.forEach(b=>{
+        const ff=(b.sim.factions||[]).find(x=>x.id===f.id)||{};
+        row.push(((ff.tech!=null)?ff.tech:'-')+'/'+((ff.military!=null)?ff.military:'-')+'/'+((ff.stability!=null)?ff.stability:'-'));
+      });
+      rows.push(row);
+    });
+  }
+  const csv='\ufeff'+rows.map(r=>r.map(csvEsc).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='alt-history-branches-'+Date.now()+'.csv'; a.click();
+  toast(t('branchCsv')+' OK');
+}
 
 /* ---------- 导入导出保存 ---------- */
 function saveScenario(){ saveApi(); readScenario(); localStorage.setItem('ahs_scenario',JSON.stringify(state.scenario)); toast(t('saved')); }
