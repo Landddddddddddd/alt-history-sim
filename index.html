@@ -194,7 +194,10 @@
         <button class="btn sm" id="btnSave" onclick="saveScenario()">保存方案</button>
         <button class="btn sm" id="btnExport" onclick="exportJson()">导出 JSON</button>
         <button class="btn sm" id="btnImport" onclick="importJson()">导入 JSON</button>
-        <button class="btn sm" id="btnPreset" onclick="loadPreset()">载入示例</button>
+        <button class="btn sm" id="btnReport" onclick="exportReport()">📄 导出报告</button>
+        <button class="btn sm" id="presetBtn0" onclick="loadPreset(0)">示例 1</button>
+        <button class="btn sm" id="presetBtn1" onclick="loadPreset(1)">示例 2</button>
+        <button class="btn sm" id="presetBtn2" onclick="loadPreset(2)">示例 3</button>
       </div>
       <div style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
         <div class="muted" id="branchHint"></div>
@@ -289,6 +292,7 @@ const I18N = {
     lRand:"随机事件表（低概率事件）", lAdj:"地缘相邻 + 地图", lBranchN:"分支数 (2-4)", branchHint:"对同一方案多次推演（不同随机种子），并排比较走向分歧。",
     trendMetric:"指标", mapEmpty:"推演开始后显示势力地图", trendEmpty:"推演后显示数值趋势", branchEmpty:"点击「运行分支对比」对同一方案多次推演并并排比较走向。",
     branchFinal:"各分支终局势力对比 (科技/军力/稳定)", trendAll:"全部叠加（颜色=势力，线型=指标）", branchCsv:"导出 CSV",
+    btnReport:"📄 导出报告", runRestored:"已恢复上次推演进度（{n} 回合），点「开始推演」继续", jsonRetry:"JSON 解析失败，自动重试",
     mapYear:"地图年份", mapHint:"点击地图上的任一地区，查看该地区历年的控制势力变化；拖动滑块可查看不同年份的地图。",
     mapHist:"控制沿革", mapIndep:"独立 / 无主", mapNone:"无数据", mapChange:"易主", mapHold:"维持", mapClear:"清除选择",
     mapNoMap:"该回合模型未输出 map 字段。请勾选「地缘相邻 + 地图」后重新推演。", mapLegend:"图例",
@@ -321,6 +325,7 @@ const I18N = {
     lRand:"Random event table", lAdj:"Adjacency + Map", lBranchN:"Branches (2-4)", branchHint:"Run the same scenario several times (different seeds) and compare divergences side by side.",
     trendMetric:"Metric", mapEmpty:"Map appears after simulation", trendEmpty:"Trend appears after simulation", branchEmpty:"Click 'Run branches' to simulate the same scenario multiple times and compare.",
     branchFinal:"Final factions per branch (tech/mil/stab)", trendAll:"All metrics (color=faction, style=metric)", branchCsv:"Export CSV",
+    btnReport:"📄 Export report", runRestored:"Restored last run ({n} turns) — click Start to continue", jsonRetry:"JSON parse failed, retrying",
     mapYear:"Map year", mapHint:"Click any region on the map to see how its controller changed over the years; drag the slider to view other years.",
     mapHist:"Control history", mapIndep:"Independent", mapNone:"No data", mapChange:"Changed hands", mapHold:"Held", mapClear:"Clear",
     mapNoMap:"The model returned no 'map' field for this turn. Enable 'Adjacency + Map' and re-run.", mapLegend:"Legend",
@@ -353,6 +358,7 @@ const I18N = {
     lRand:"ランダムイベント表", lAdj:"隣接効果＋地図", lBranchN:"分岐数(2-4)", branchHint:"同じシナリオを複数回（異シード）実行し、分岐を比較。",
     trendMetric:"指標", mapEmpty:"地図は実行後に表示", trendEmpty:"傾向は実行後に表示", branchEmpty:"「分岐実行」で同じシナリオを複数回実行して比較。",
     branchFinal:"各分岐の終局勢力 (技/軍/安)", trendAll:"全指標を重ねる（色＝勢力、線種＝指標）", branchCsv:"CSV 出力",
+    btnReport:"📄 レポート出力", runRestored:"前回の実行を復元しました（{n} ターン）。「開始」で続行できます", jsonRetry:"JSON 解析に失敗、再試行",
     mapYear:"地図の年", mapHint:"地図の地域をクリックすると、その地域の支配勢力の変遷を表示します。スライダーで年を切り替えられます。",
     mapHist:"支配の変遷", mapIndep:"独立 / 無主", mapNone:"データなし", mapChange:"支配者交代", mapHold:"維持", mapClear:"選択解除",
     mapNoMap:"このターンに map フィールドがありません。「隣接効果＋地図」をONにして再実行してください。", mapLegend:"凡例",
@@ -385,6 +391,7 @@ const I18N = {
     lRand:"Tabla de eventos aleatorios", lAdj:"Adyacencia + Mapa", lBranchN:"Ramas (2-4)", branchHint:"Ejecuta el mismo escenario varias veces (semillas distintas) y compara divergencias.",
     trendMetric:"Métrica", mapEmpty:"El mapa aparece tras simular", trendEmpty:"La tendencia aparece tras simular", branchEmpty:"Pulsa 'Ejecutar ramas' para simular varias veces y comparar.",
     branchFinal:"Faccciones finales por rama (tec/mil/estab)", trendAll:"Todas las métricas (color=facción, trazo=métrica)", branchCsv:"Exportar CSV",
+    btnReport:"📄 Exportar informe", runRestored:"Simulación anterior restaurada ({n} turnos); pulsa Iniciar para continuar", jsonRetry:"Error de JSON, reintentando",
     mapYear:"Año del mapa", mapHint:"Haz clic en una región del mapa para ver cómo cambió su controlador; arrastra el control para ver otros años.",
     mapHist:"Historial de control", mapIndep:"Independiente", mapNone:"Sin datos", mapChange:"Cambió de manos", mapHold:"Se mantiene", mapClear:"Limpiar",
     mapNoMap:"El modelo no devolvió el campo 'map' en este turno. Activa 'Adyacencia + Mapa' y vuelve a ejecutar.", mapLegend:"Leyenda",
@@ -417,6 +424,7 @@ const I18N = {
     lRand:"Table d'événements aléatoires", lAdj:"Adyacence + Carte", lBranchN:"Branches (2-4)", branchHint:"Exécute plusieurs fois le même scénario (graines différentes) et compare les divergences.",
     trendMetric:"Métrique", mapEmpty:"La carte apparaît après simulation", trendEmpty:"La tendance apparaît après simulation", branchEmpty:"Clique 'Exécuter branches' pour simuler plusieurs fois et comparer.",
     branchFinal:"Factions finales par branche (tech/mil/stab)", trendAll:"Toutes métriques (couleur=faction, style=métrique)", branchCsv:"Exporter CSV",
+    btnReport:"📄 Exporter le rapport", runRestored:"Simulation précédente restaurée ({n} tours) — cliquez Démarrer pour continuer", jsonRetry:"Échec JSON, nouvelle tentative",
     mapYear:"Année de la carte", mapHint:"Clique une région de la carte pour voir l'évolution de son contrôle ; glisse le curseur pour changer d'année.",
     mapHist:"Historique de contrôle", mapIndep:"Indépendant", mapNone:"Aucune donnée", mapChange:"Change de mains", mapHold:"Maintien", mapClear:"Effacer",
     mapNoMap:"Le modèle n'a pas renvoyé de champ 'map' pour ce tour. Active 'Adyacence + Carte' et relance.", mapLegend:"Légende",
@@ -466,9 +474,10 @@ function applyLang(){
     tabFactions:'tabFactions',tabMap:'tabMap',tabTrend:'tabTrend',tabBranch:'tabBranch',tabRaw:'tabRaw',tabLog:'tabLog',
     lRand:'lRand',lAdj:'lAdj',lBranchN:'lBranchN',branchHint:'branchHint',trendMetric:'trendMetric',
     mapEmpty:'mapEmpty',trendEmpty:'trendEmpty',branchEmpty:'branchEmpty',branchFinal:'branchFinal',
-    oTech:'oTech',oStab:'oStab',oMil:'oMil',oAll:'oAll',branchCsvBtn:'branchCsv'
+    oTech:'oTech',oStab:'oStab',oMil:'oMil',oAll:'oAll',branchCsvBtn:'branchCsv',btnReport:'btnReport'
   };
   for(const id in map){ const el=$(id); if(el) el.textContent=t(map[id]); }
+  for(let i=0;i<PRESETS.length;i++){ const b=$('presetBtn'+i); if(b) b.textContent=PRESETS[i].title[LANG]||PRESETS[i].title.zh; }
   $('optRand').checked = state.opt.rand; $('optAdj').checked = state.opt.adj;
   $('lang').value = LANG;
   renderNodes(); refreshViews(); renderMap(true); renderBranches();
@@ -574,6 +583,7 @@ function resetSim(){
   state.sim={turns:[],factions:[],year:null,idx:0,running:false,paused:false,factionColors:{}};
   state.branches=[];
   state.map={year:null,region:null};
+  try{ localStorage.removeItem('ahs_run'); }catch(e){}
   renderNodes(); refreshViews(); $('rawView').textContent='{}';
   $('progBar').style.width='0%'; $('progText').textContent=t('progText');
   $('branchBar').style.width='0%'; $('branchText').textContent='';
@@ -597,6 +607,7 @@ async function runLoop(){
       $('progBar').style.width=pct+'%';
       $('progText').textContent=state.scenario.start+(state.sim.idx-1)*state.scenario.step+' → '+state.scenario.start+state.sim.idx*state.scenario.step+'  ('+state.sim.idx+'/'+totalSteps()+')';
       log('✓ turn '+state.sim.idx+'/'+totalSteps()+' @ '+turn.year,'ok');
+      saveRun();
     }catch(e){
       log(t('genFail')+e.message,'err'); state.sim.paused=true; setRunning(false); toast(t('genFail')+e.message); return;
     }
@@ -620,8 +631,12 @@ async function genTurn(sim, lang, seedNote){
       '\n\n请推演接下来 '+state.scenario.step+' 年（至 '+curYear+' 年），更新所有 factions 的完整最新数值与 map，保持连续性与真实性。只输出JSON。';
   }
   if(seedNote) userMsg += '\n\n【随机种子】'+seedNote+'（用于让本次推演走向与其他次不同）';
-  const content=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}], false);
-  const parsed=parseJSON(content);
+  let parsed=null;
+  for(let att=0;att<3;att++){
+    const content=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}], false);
+    try{ parsed=parseJSON(content); break; }
+    catch(e){ if(att===2) throw e; log('⚠ '+t('jsonRetry')+' ('+(att+1)+'/2)','err'); await sleep(300); }
+  }
   if(!parsed.year) parsed.year=state.scenario.start+sim.idx*state.scenario.step;
   if(!parsed.events) parsed.events=[];
   if(!parsed.factions||!parsed.factions.length) parsed.factions=sim.factions;
@@ -647,6 +662,7 @@ async function runBranches(){
       catch(e){ log('分支'+(b+1)+' 失败: '+e.message,'err'); break; }
     }
     state.branches.push({sim,seed});
+    saveRun();
     $('branchBar').style.width=Math.round((b+1)/n*100)+'%';
     log('✓ 分支 '+(b+1)+' 完成','ok');
   }
@@ -987,6 +1003,52 @@ function exportBranchCsv(){
   toast(t('branchCsv')+' OK');
 }
 
+/* ---------- 断点续跑存档 ---------- */
+function saveRun(){
+  try{ localStorage.setItem('ahs_run', JSON.stringify({scenario:state.scenario, sim:state.sim, branches:state.branches.map(b=>({seed:b.seed,sim:b.sim}))})); }catch(e){}
+}
+/* ---------- 导出 Markdown 报告 ---------- */
+function exportReport(){
+  if(!state.sim.turns.length){ toast(t('tlEmpty')); return; }
+  const doms=t('domains')||{};
+  let md='# '+(state.scenario.title||'Alternate History')+'\n\n';
+  md+='- '+t('lStart')+': '+state.scenario.start+'\n- '+t('lEnd')+': '+state.scenario.end+'\n- '+t('lStep')+': '+state.scenario.step+'\n\n';
+  md+='## '+t('lBase')+'\n\n'+(state.scenario.base||'')+'\n\n';
+  md+='## '+t('tNodes')+'\n\n'+(state.scenario.nodes.map(n=>'- **'+n.year+' · '+n.name+'** — '+n.desc).join('\n')||'-')+'\n\n';
+  md+='## '+t('tabTimeline')+'\n\n';
+  state.sim.turns.forEach(tr=>{
+    md+='### '+tr.year+'\n\n'+(tr.summary||'')+'\n\n';
+    (tr.events||[]).forEach(e=>{
+      md+='- **['+((doms[e.domain]||e.domain))+'] '+(e.title||'')+'** — '+(e.description||'')+(e.severity?('（'+e.severity+'/5）'):'')+'\n';
+    });
+    if(tr.divergences&&tr.divergences.length) md+='\n> ⚡ '+tr.divergences.join(' / ')+'\n';
+    md+='\n';
+  });
+  md+='## '+t('tabFactions')+'\n\n';
+  md+='| '+t('fName')+' | '+t('fIdeo')+' | '+t('fLeader')+' | '+t('fGdp')+' | '+t('fStab')+' | '+t('fMil')+' | '+t('fTech')+' | '+t('fPop')+' |\n';
+  md+='|---|---|---|---|---|---|---|---|\n';
+  state.sim.factions.forEach(f=>{
+    md+='| '+[f.name,f.ideology,f.leader,f.gdp,f.stability,f.military,f.tech,f.population].map(x=>(x==null||x==='')?'-':x).join(' | ')+' |\n';
+  });
+  if(state.branches&&state.branches.length){
+    const div=branchDivergence();
+    md+='\n## '+t('tabBranch')+'\n\n';
+    md+='| '+t('mapYear')+' | '+t('branchDivCol')+' |\n|---|---|\n';
+    div.forEach(d=>{ if(d.ok) md+='| '+d.year+' | '+d.score.toFixed(3)+' |\n'; });
+    md+='\n| '+t('fName')+' | '+state.branches.map((b,i)=>'B'+(i+1)+' ('+t('fTech')+'/'+t('fMil')+'/'+t('fStab')+')').join(' | ')+' |\n';
+    md+='|---|'+state.branches.map(()=>'---|').join('')+'\n';
+    (state.branches[0].sim.factions||[]).forEach(f=>{
+      md+='| '+f.name+' | '+state.branches.map(b=>{
+        const ff=(b.sim.factions||[]).find(x=>x.id===f.id)||{};
+        return ((ff.tech!=null)?ff.tech:'-')+'/'+((ff.military!=null)?ff.military:'-')+'/'+((ff.stability!=null)?ff.stability:'-');
+      }).join(' | ')+' |\n';
+    });
+  }
+  const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='alt-history-report-'+Date.now()+'.md'; a.click();
+  toast(t('btnReport')+' OK');
+}
+
 /* ---------- 导入导出保存 ---------- */
 function saveScenario(){ saveApi(); readScenario(); localStorage.setItem('ahs_scenario',JSON.stringify(state.scenario)); toast(t('saved')); }
 function exportJson(){
@@ -1010,19 +1072,67 @@ function fillScenarioForm(){
   $('baseContext').value=state.scenario.base||''; renderNodes();
 }
 
-/* ---------- 示例预设 ---------- */
-function loadPreset(){
+/* ---------- 示例预设（五语） ---------- */
+const PRESETS=[
+{
+  start:1200, end:1700, step:50,
+  title:{zh:'如果火药没有传入欧洲',en:'If Gunpowder Never Reached Europe',ja:'もし火薬が欧州へ伝わらなかったら',es:'Si la pólvora nunca llegó a Europa',fr:"Si la poudre n'était jamais parvenue en Europe"},
+  base:{
+    zh:'真实历史：1200 年蒙古西征把火药技术带向西方，欧亚大陆由多个帝国割据。本推演假设：火药配方在东方被严格保密，未曾西传；欧洲仍停留于冷兵器与中世纪战术。',
+    en:'Real history: the Mongol campaigns carried gunpowder west after 1200. Here the formula stays a strict state secret in the East; Europe remains in the age of cold weapons and medieval tactics.',
+    ja:'実際の歴史：1200年頃モンゴルの西征により火薬が西方へ伝播。本設定では火薬の調合法が東方で厳重に秘匿され、西伝しなかったと仮定する。欧州は冷兵器と中世戦術のままとする。',
+    es:'Historia real: las campañas mongoles llevaron la pólvora a Occidente tras 1200. Aquí la fórmula sigue siendo un secreto de Estado en Oriente; Europa permanece en la era de las armas blancas.',
+    fr:"Histoire réelle : les campagnes mongoles ont porté la poudre vers l'Ouest après 1200. Ici, la formule reste un secret d'État en Orient ; l'Europe en reste aux armes blanches et à la tactique médiévale."
+  },
+  nodes:[
+    {year:1300,name:{zh:'蒙古内战',en:'Mongol civil war',ja:'モンゴル内戦',es:'Guerra civil mongol',fr:'Guerre civile mongole'},desc:{zh:'蒙古帝国分裂为四大汗国，丝绸之路贸易重心东移，欧洲失去东方技术输入窗口。',en:'The Mongol Empire splits into four khanates; Silk Road trade shifts east and Europe loses its window for Eastern technology.',ja:'モンゴル帝国が四つのハン国に分裂し、シルクロード交易の重心が東へ移り、欧州は東方技術の窓口を失う。',es:'El Imperio mongol se divide en cuatro janatos; la Ruta de la Seda se desplaza al este y Europa pierde su ventana tecnológica.',fr:"L'Empire mongol se scinde en quatre khanats ; la Route de la soie se déplace vers l'est et l'Europe perd sa fenêtre technologique."}},
+    {year:1450,name:{zh:'古腾堡受阻',en:'Gutenberg stalled',ja:'グーテンベルクの頓挫',es:'Gutenberg frenado',fr:'Gutenberg bloqué'},desc:{zh:'缺乏火药带来的金属冶炼需求，活字印刷与采矿机械进步缓慢，知识传播受限。',en:'Without gunpowder-driven metallurgy, printing and mining machinery advance slowly; knowledge spreads with difficulty.',ja:'火薬由来の冶金需要がなく、活版印刷や採掘機械の進歩は遅く、知識伝播が制限される。',es:'Sin la metalurgia que impulsó la pólvora, la imprenta y la minería avanzan despacio; el saber se difunde con dificultad.',fr:'Sans la métallurgie dopée par la poudre, imprimerie et mines progressent lentement ; le savoir circule mal.'}},
+    {year:1600,name:{zh:'海上均势',en:'Balance at sea',ja:'海上の均衡',es:'Equilibrio en el mar',fr:'Équilibre des mers'},desc:{zh:'没有火药，欧洲列强的远洋舰队仍以桨帆与接舷战为主，殖民扩张速度大幅下降。',en:'Without gunpowder, European fleets remain oar-and-boarding ships; colonial expansion slows sharply.',ja:'火薬なく欧州艦隊は櫂帆・接舷戦のまま、植民地拡大が大幅に減速する。',es:'Sin pólvora, las flotas europeas siguen siendo de remos y abordaje; la expansión colonial se frena.',fr:'Sans poudre, les flottes européennes restent des navires à rames et d\'abordage ; l\'expansion coloniale ralentit fortement.'}}
+  ]
+},
+{
+  start:350, end:1550, step:100,
+  title:{zh:'如果罗马帝国从未分裂',en:'If Rome Never Split',ja:'もしローマ帝国が分裂しなかったら',es:'Si Roma nunca se hubiera dividido',fr:'Si Rome ne s\'était jamais divisée'},
+  base:{
+    zh:'真实历史：3 世纪危机后，罗马帝国于 395 年东西分治，西部在 5 世纪崩溃。本推演假设：戴克里先与君士坦丁的改革成功建立可持续的共治与继承制度，帝国保持统一并完成渐进改革。',
+    en:'Real history: after the 3rd-century crisis Rome split in 395 and the West fell in the 5th century. Here, the reforms of Diocletian and Constantine create a workable co-rule and succession system, and the empire stays unified.',
+    ja:'実際の歴史：3世紀の危機の後、ローマは395年に東西に分治し、5世紀に西側が崩壊。本設定ではディオクレティアヌスとコンスタンティヌスの改革が持続可能な共同統治と継承制度を確立し、帝国は統一を保つと仮定する。',
+    es:'Historia real: tras la crisis del siglo III, Roma se dividió en 395 y Occidente cayó en el siglo V. Aquí las reformas de Diocleciano y Constantino crean una co-gobernanza y sucesión viable; el imperio permanece unido.',
+    fr:"Histoire réelle : après la crise du IIIe siècle, Rome s'est divisée en 395 et l'Occident est tombé au Ve siècle. Ici, les réformes de Dioclétien et de Constantine instaurant une co-gouvernance viable, l'empire reste uni."
+  },
+  nodes:[
+    {year:395,name:{zh:'统一继承法',en:'Unified succession law',ja:'統一継承法',es:'Ley de sucesión unificada',fr:'Loi de succession unifiée'},desc:{zh:'皇帝确立「双帝共治、单一法统」制度，以明确的继承规则避免帝国永久分治。',en:'The emperor codifies "two emperors, one legal order"; clear succession rules avert permanent division.',ja:'皇帝が「二人の皇帝、一つの法体系」を定め、明確な継承規則で恒久的分裂を回避する。',es:'El emperador codifica «dos emperadores, un orden jurídico»; reglas claras de sucesión evitan la división permanente.',fr:'L\'empereur codifie « deux empereurs, un ordre juridique » ; des règles claires de succession évitent la division permanente.'}},
+    {year:476,name:{zh:'边疆整编',en:'Border reform',ja:'辺境の再編',es:'Reforma de fronteras',fr:'Réforme des frontières'},desc:{zh:'以补贴与条约化安置日耳曼部族，西境转化为缓冲邦而非入侵走廊。',en:'Germanic tribes are settled by subsidy and treaty, turning the western frontier into buffer polities rather than an invasion corridor.',ja:'ゲルマン諸族を援助と条約で定住させ、西辺を侵攻回路ではなく緩衝勢力へ転換する。',es:'Las tribus germánicas se asientan por subsidio y tratado; la frontera oeste pasa a ser de Estados colchón.',fr:'Les tribus germaniques sont installées par subsides et traités ; la frontière ouest devient un glacis tampon.'}},
+    {year:700,name:{zh:'罗法融合',en:'Romano-Germanic synthesis',ja:'ローマ法の統合',es:'Síntesis jurídica',fr:'Synthèse juridique'},desc:{zh:'罗马法与行省行政吸纳日耳曼武人阶层，形成环地中海的长期政治共同体。',en:'Roman law and provincial administration absorb Germanic elites, forming a lasting Mediterranean political community.',ja:'ローマ法と属州行政がゲルマン武人層を吸収し、地中海を囲む長期的な政治共同体を形成する。',es:'El derecho romano y la administración provincial absorben a las élites germánicas, formando una comunidad política mediterránea duradera.',fr:'Le droit romain et l\'administration provinciale absorbent les élites germaniques, formant une communauté politique méditerranéenne durable.'}}
+  ]
+},
+{
+  start:-200, end:1600, step:150,
+  title:{zh:'如果美洲独立发明钢铁',en:'Steel in the Americas',ja:'もしアメリカが独自に製鉄を発明したら',es:'Acero en América',fr:"Si l'Amérique avait inventé l'acier"},
+  base:{
+    zh:'真实历史：美洲文明独立发展，但未发明冶铁与实用轮轴。本推演假设：公元前 200 年起，安第斯与中美洲各自独立掌握冶铁与轮式运输，技术沿贸易网缓慢扩散，两个半球平行演进。',
+    en:'Real history: American civilizations developed independently but never mastered iron smelting or practical wheeled transport. Here, from 200 BCE the Andes and Mesoamerica independently master iron and the wheel, diffusing slowly along trade networks while both hemispheres evolve in parallel.',
+    ja:'実際の歴史：アメリカ文明は独自に発展したが、製鉄と実用的な車輪は発明しなかった。本設定では紀元前200年頃からアンデスと中米が独立に製鉄と車輪を習得し、交易網を通じて徐々に広がり、両半球が並行して発展すると仮定する。',
+    es:'Historia real: las civilizaciones americanas nunca dominaron la fundición de hierro ni el transporte con ruedas. Aquí, desde el 200 a.C., los Andes y Mesoamérica dominan el hierro y la rueda de forma independiente, difundido por redes comerciales.',
+    fr:"Histoire réelle : les civilisations américaines n'ont jamais maîtrisé la sidérurgie ni la roue. Ici, dès 200 av. J.-C., les Andes et la Mésoamérique maîtrisent indépendamment le fer et la roue, diffusés le long des réseaux commerciaux."
+  },
+  nodes:[
+    {year:200,name:{zh:'铁器城邦',en:'Iron city-states',ja:'製鉄都市国家',es:'Ciudades de hierro',fr:'Cités du fer'},desc:{zh:'铁制农具与兵器令人口与战争规模跃升，秘鲁与中美洲出现首批铁器城邦联盟。',en:'Iron tools and weapons boost population and war scale; the first iron-age city leagues appear in Peru and Mesoamerica.',ja:'鉄製農具と武器が人口と戦争規模を跳ね上げ、ペルーと中米に最初の鉄器都市連盟が現れる。',es:'Herramientas y armas de hierro elevan población y escala bélica; surgen las primeras ligas de ciudades del hierro.',fr:'Outils et armes de fer font bondir population et échelle guerrière ; les premières ligues de cités du fer apparaissent.'}},
+    {year:800,name:{zh:'轮轨贸易网',en:'Wheel-road network',ja:'車輪交易網',es:'Red de ruedas',fr:'Réseau roulier'},desc:{zh:'无大型役畜，便以人力轨道车与梯田驿道连接高地与雨林，形成大陆性贸易网。',en:'Without large draft animals, human-powered carts and terrace causeways link highlands and rainforest into a continental trade web.',ja:'大型役畜がないため、人力車と段々駅道が高地と熱帯雨林を結び、大陸規模の交易網を形成する。',es:'Sin grandes animales de tiro, carros humanos y calzadas de terrazas unen tierras altas y selva en una red continental.',fr:'Sans grands animaux de trait, chariots humains et chaussées en terrasses relient hauts plateaux et forêt en un réseau continental.'}},
+    {year:1450,name:{zh:'渡洋使者',en:'Ocean envoys',ja:'渡洋の使者',es:'Enviados oceánicos',fr:'Émissaires océaniques'},desc:{zh:'铁壳帆船试验性横渡大西洋与太平洋，两个半球在旧大陆瘟疫到来前建立了有限接触。',en:'Iron-hulled sailing ships make experimental Atlantic and Pacific crossings; the hemispheres establish limited contact before Old World epidemics arrive.',ja:'鉄殻帆船が大西洋と太平洋を試験的に横断し、旧大陸の疫病が来る前に両半球が限定的な接触を結ぶ。',es:'Barcos de casco de hierro cruzan experimentalmente el Atlántico y el Pacífico; ambos hemisferios establecen contacto limitado.',fr:'Des navires à coque de fer traversent l\'Atlantique et le Pacifique à titre expérimental ; les hémisphères établissent un contact limité.'}}
+  ]
+}
+];
+function loadPreset(i){
+  const p=PRESETS[i]||PRESETS[0];
+  const L=I18N[LANG]?LANG:'zh';
   state.scenario={
-    title:'如果火药没有传入欧洲',
-    start:1200, end:1700, step:50,
-    base:'真实历史：1200 年蒙古西征把火药技术带向西方，欧亚大陆由多个帝国割据。本推演假设：火药配方在东方被严格保密，未曾西传；欧洲仍停留于冷兵器与中世纪战术。',
-    nodes:[
-      {year:1300,name:'蒙古内战',desc:'蒙古帝国分裂为四大汗国，丝绸之路贸易重心东移，欧洲失去东方技术输入窗口。'},
-      {year:1450,name:'古腾堡受阻',desc:'缺乏火药带来的金属冶炼需求，活字印刷与采矿机械进步缓慢，知识传播受限。'},
-      {year:1600,name:'海上均势',desc:'没有火药，欧洲列强的远洋舰队仍以桨帆与接舷战为主，殖民扩张速度大幅下降。'}
-    ]
+    title:p.title[L]||p.title.zh,
+    start:p.start, end:p.end, step:p.step,
+    base:p.base[L]||p.base.zh,
+    nodes:p.nodes.map(n=>({year:n.year, name:n.name[L]||n.name.zh, desc:n.desc[L]||n.desc.zh}))
   };
-  fillScenarioForm(); toast('已载入示例：如果火药没有传入欧洲');
+  fillScenarioForm(); toast('✓ '+state.scenario.title);
 }
 
 /* ---------- 标签切换 ---------- */
@@ -1044,6 +1154,21 @@ $('lang').addEventListener('change',e=>{ LANG=e.target.value; localStorage.setIt
   loadApi();
   try{ const s=JSON.parse(localStorage.getItem('ahs_scenario')||'null'); if(s) Object.assign(state.scenario,s); }catch(e){}
   $('lang').value=LANG; applyLang(); fillScenarioForm();
+  /* 断点续跑：恢复上次推演存档 */
+  try{
+    const r=JSON.parse(localStorage.getItem('ahs_run')||'null');
+    if(r&&r.sim&&r.sim.turns&&r.sim.turns.length){
+      if(r.scenario&&r.scenario.nodes) state.scenario=r.scenario;
+      state.sim=Object.assign({turns:[],factions:[],year:null,idx:0,running:false,paused:false,factionColors:{}},r.sim);
+      state.sim.running=false; state.sim.paused=false;
+      state.branches=(r.branches||[]).map(b=>({seed:b.seed,sim:b.sim}));
+      fillScenarioForm(); refreshViews(); renderRaw();
+      const pct=Math.round(state.sim.idx/Math.max(1,totalSteps())*100);
+      $('progBar').style.width=pct+'%';
+      $('progText').textContent=state.sim.idx+'/'+totalSteps();
+      toast(t('runRestored').replace('{n}',state.sim.turns.length));
+    }
+  }catch(e){}
 })();
 </script>
 </body>
